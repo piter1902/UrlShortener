@@ -13,7 +13,7 @@ $(document).ready(
                             + msg.uri
                             + "'>"
                             + msg.uri
-                            + "</a></div>");
+                            + "</a><p>Safeness:" + msg.safe + "</p></div>");
                     },
                     error: function () {
                         $("#result").html(

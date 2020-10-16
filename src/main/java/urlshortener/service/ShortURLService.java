@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import urlshortener.domain.ShortURL;
 import urlshortener.repository.ShortURLRepository;
@@ -36,5 +37,11 @@ public class ShortURLService {
         .unknownCountry()
         .build();
     return shortURLRepository.save(su);
+  }
+
+  public ShortURL markAs(ShortURL su, boolean mark) {
+    ShortURL ret = shortURLRepository.mark(su, mark);
+    BeanUtils.copyProperties(su, ret);
+    return ret;
   }
 }

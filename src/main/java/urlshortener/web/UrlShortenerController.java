@@ -1,6 +1,10 @@
 package urlshortener.web;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +51,28 @@ public class UrlShortenerController {
         "https"});
     if (urlValidator.isValid(url)) {
       ShortURL su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+      // Sends the shortURL to a message queue to validate
+      // Source: https://www.baeldung.com/java-http-request
+      try {
+        URL url_check = new URL(url);
+        HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
+        con.setRequestMethod("GET");
+        if(con.getResponseCode() == 200){
+          // Request returns 200. Url is valid.
+          shortUrlService.markAs(su, true);
+          System.out.format("URL %s valida\n", su.getTarget());
+        } /*else {
+          //su = shortUrlService.markAs(su, false);
+        }*/
+      } catch (MalformedURLException e) {
+        e.printStackTrace();
+      } catch (IOException e) {
+        //e.printStackTrace();
+        System.out.println("LA URL NO ES VALIDA");
+        su = shortUrlService.markAs(su, false);
+      }
+
+      // Returns shortURL
       HttpHeaders h = new HttpHeaders();
       h.setLocation(su.getUri());
       return new ResponseEntity<>(su, h, HttpStatus.CREATED);

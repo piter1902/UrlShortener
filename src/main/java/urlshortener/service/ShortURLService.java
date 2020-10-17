@@ -45,6 +45,9 @@ public class ShortURLService {
     BeanUtils.copyProperties(su, ret);
     new DirectFieldAccessor(ret).setPropertyValue("safe", mark);
     new DirectFieldAccessor(ret).setPropertyValue("uri", su.getUri());
+    new DirectFieldAccessor(ret).setPropertyValue("hash", su.getHash());
+    new DirectFieldAccessor(ret).setPropertyValue("target", su.getTarget());
+    new DirectFieldAccessor(ret).setPropertyValue("sponsor", su.getSponsor());
     return ret;
   }
 }

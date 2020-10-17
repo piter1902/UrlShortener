@@ -38,7 +38,7 @@ public class UrlShortenerController {
         if (l != null && l.getSafe()) {
             clickService.saveClick(id, extractIP(request));
             return createSuccessfulRedirectToResponse(l);
-        } else if (!l.getSafe()) {
+        } else if (l != null && !l.getSafe()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

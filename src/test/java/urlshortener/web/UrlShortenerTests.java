@@ -68,13 +68,13 @@ public class UrlShortenerTests {
   public void thatShortenerCreatesARedirectIfTheURLisOK() throws Exception {
     configureSave(null);
 
-    mockMvc.perform(post("/link").param("url", "http://example.com/"))
+    mockMvc.perform(post("/link").param("url", "http://example.org/"))
         .andDo(print())
-        .andExpect(redirectedUrl("http://localhost/f684a3c4"))
+        .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.hash", is("f684a3c4")))
-        .andExpect(jsonPath("$.uri", is("http://localhost/f684a3c4")))
-        .andExpect(jsonPath("$.target", is("http://example.com/")))
+        .andExpect(jsonPath("$.hash", is("16a3e3e5")))
+        .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
+        .andExpect(jsonPath("$.target", is("http://example.org/")))
         .andExpect(jsonPath("$.sponsor", is(nullValue())));
   }
 
@@ -83,13 +83,13 @@ public class UrlShortenerTests {
     configureSave("http://sponsor.com/");
 
     mockMvc.perform(
-        post("/link").param("url", "http://example.com/").param(
+        post("/link").param("url", "http://example.org/").param(
             "sponsor", "http://sponsor.com/")).andDo(print())
-        .andExpect(redirectedUrl("http://localhost/f684a3c4"))
+        .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.hash", is("f684a3c4")))
-        .andExpect(jsonPath("$.uri", is("http://localhost/f684a3c4")))
-        .andExpect(jsonPath("$.target", is("http://example.com/")))
+        .andExpect(jsonPath("$.hash", is("16a3e3e5")))
+        .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
+        .andExpect(jsonPath("$.target", is("http://example.org/")))
         .andExpect(jsonPath("$.sponsor", is("http://sponsor.com/")));
   }
 
@@ -113,9 +113,9 @@ public class UrlShortenerTests {
   private void configureSave(String sponsor) {
     when(shortUrlService.save(any(), any(), any()))
         .then((Answer<ShortURL>) invocation -> new ShortURL(
-            "f684a3c4",
-            "http://example.com/",
-            URI.create("http://localhost/f684a3c4"),
+            "16a3e3e5",
+            "http://example.org/",
+            URI.create("http://localhost/16a3e3e5"),
             sponsor,
             null,
             null,

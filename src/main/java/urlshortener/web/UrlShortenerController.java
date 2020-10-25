@@ -1,27 +1,31 @@
 package urlshortener.web;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
 import urlshortener.service.ClickService;
 import urlshortener.service.ShortURLService;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
+
 @RestController
 public class UrlShortenerController {
+    public static final String CSV_SEPARATOR = ";";
     private final ShortURLService shortUrlService;
 
     private final ClickService clickService;
@@ -92,5 +96,28 @@ public class UrlShortenerController {
         HttpHeaders h = new HttpHeaders();
         h.setLocation(URI.create(l.getTarget()));
         return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+    }
+
+    @PostMapping(value = "/uploadCSV")
+    // TODO: Change return type to download the file
+    public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file) {
+        try {
+            // Contenido del fichero
+            String content = new String(file.getBytes(), StandardCharsets.UTF_8);
+            String[] lines = content.replaceAll("\r\n", "\n").split("\n");
+            for (String s : lines) {
+                String[] fields = s.split(CSV_SEPARATOR);
+                // TODO: Short the URL line and append it to the return file
+                System.out.println(s);
+            }
+            File f = new File("files/" + UUID.randomUUID() + ".csv");
+            PrintWriter pw = new PrintWriter(f);
+            pw.print(content);
+            pw.close();
+            return new ResponseEntity<>(content.getBytes(), HttpStatus.OK);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

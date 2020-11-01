@@ -19,11 +19,11 @@ import urlshortener.service.ShortURLService;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
@@ -62,42 +62,60 @@ public class UrlShortenerController {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http",
                 "https"});
         if (urlValidator.isValid(url)) {
-            ShortURL su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
-            // Generate QR code
-            String qrCode = null;
-            try {
-                qrCode = generateQRCode(su);
-            } catch (WriterException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            su.setQrCode(qrCode);
-            // Sends the shortURL to a message queue to validate
-            // Source: https://www.baeldung.com/java-http-request
-            try {
-                URL url_check = new URL(url);
-                HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
-                con.setRequestMethod("GET");
-                if (con.getResponseCode() == 200) {
-                    // Request returns 200. Url is valid.
-                    shortUrlService.markAs(su, true);
-                    System.out.format("URL %s valida\n", su.getTarget());
-                } /*else {
+            ShortURL su = shortUrlService.create(url, sponsor, request.getRemoteAddr());
+            su = shortUrlService.findByKey(su.getHash());
+            if (su == null) {
+                System.err.println("No existe. Creando.");
+                // ShortUrl NOT exists. Saving it.
+                su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+                // Generate QR code
+                String qrCode = null;
+                try {
+                    qrCode = generateQRCode(su, su.getUri());
+                } catch (WriterException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                } catch (NullPointerException npe) {
+                    npe.printStackTrace();
+                }
+                su.setQrCode(qrCode);
+                /*su =*/ shortUrlService.saveQR(su);
+
+                // Sends the shortURL to a message queue to validate
+                // Source: https://www.baeldung.com/java-http-request
+                try {
+                    URL url_check = new URL(url);
+                    HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
+                    con.setRequestMethod("GET");
+                    if (con.getResponseCode() == 200) {
+                        // Request returns 200. Url is valid.
+                        shortUrlService.markAs(su, true);
+                        System.out.format("URL %s valida\n", su.getTarget());
+                    } /*else {
           //su = shortUrlService.markAs(su, false);
         }*/
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                //e.printStackTrace();
-                System.out.println("LA URL NO ES VALIDA");
-                su = shortUrlService.markAs(su, false);
-            }
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    //e.printStackTrace();
+                    System.out.println("LA URL NO ES VALIDA");
+                    su = shortUrlService.markAs(su, false);
+                }
 
-            // Returns shortURL
-            HttpHeaders h = new HttpHeaders();
-            h.setLocation(su.getUri());
-            return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+                // Returns shortURL
+                HttpHeaders h = new HttpHeaders();
+                h.setLocation(su.getUri());
+                return new ResponseEntity<>(su, h, HttpStatus.CREATED);
+            } else {
+                // TODO: Check why qrCode is null here. I think problem is in database.
+                // ShortUrl exists. Return it.
+                System.err.println("Existe. Devolviendo.");
+                su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+                return new ResponseEntity<>(su, HttpStatus.OK);
+            }
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -105,12 +123,13 @@ public class UrlShortenerController {
 
     /**
      * Method that returns a QR code base64 encoded
+     *
      * @param su shortUrl object to encode
      * @return base64 encoded string that contains [su] target QR code.
      * @throws WriterException iff QR encoder fails
-     * @throws IOException iff ByteArrayOutputStream fails
+     * @throws IOException     iff ByteArrayOutputStream fails
      */
-    private String generateQRCode(ShortURL su) throws WriterException, IOException {
+    public String generateQRCode(ShortURL su, URI uri) throws WriterException, IOException, URISyntaxException {
         // Sources:
         //  https://www.baeldung.com/java-generating-barcodes-qr-codes
         //  https://stackoverflow.com/questions/7178937/java-bufferedimage-to-png-format-base64-string/25109418
@@ -118,11 +137,33 @@ public class UrlShortenerController {
         BitMatrix bitMatrix = qrCodeWriter.encode(su.getUri().toASCIIString(), BarcodeFormat.QR_CODE, 200, 200);
         BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
         // Convert BufferedImage to PNG
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-        String encoded = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+//        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+//        String encoded = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+        // Save QR to /qr directory
+        String qrFilePath = "qr/" + su.getHash() + ".png";
+        ImageIO.write(bufferedImage, "png", new File(qrFilePath));
+        URI baseUri = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(),
+                "/" + qrFilePath, null, null);
+        String qrFileURI = baseUri.toASCIIString();
+        return qrFileURI;
 //        System.err.println(encoded);
-        return encoded;
+//        return encoded;
+    }
+
+    @GetMapping(value = "/qr/{hash}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    @ResponseBody
+    public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash", required = true) String hash) throws IOException {
+        ShortURL su = shortUrlService.findByKey(hash);
+        if (su != null) {
+            // QR exits
+            BufferedImage bufferedImage = ImageIO.read(new File("qr/" + hash + ".png"));
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+            return new ResponseEntity<>(byteArrayOutputStream.toByteArray(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
     }
 
     private String extractIP(HttpServletRequest request) {

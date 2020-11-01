@@ -24,7 +24,7 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
           null, rs.getString("sponsor"), rs.getDate("created"),
           rs.getString("owner"), rs.getInt("mode"),
           rs.getBoolean("safe"), rs.getString("ip"),
-          rs.getString("country"));
+          rs.getString("country"), rs.getString("qruri"));
 
   private final JdbcTemplate jdbc;
 
@@ -46,10 +46,10 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
   @Override
   public ShortURL save(ShortURL su) {
     try {
-      jdbc.update("INSERT INTO shorturl VALUES (?,?,?,?,?,?,?,?,?)",
+      jdbc.update("INSERT INTO shorturl VALUES (?,?,?,?,?,?,?,?,?,?)",
           su.getHash(), su.getTarget(), su.getSponsor(),
           su.getCreated(), su.getOwner(), su.getMode(), su.getSafe(),
-          su.getIP(), su.getCountry());
+          su.getIP(), su.getCountry(), su.getQrCode());
     } catch (DuplicateKeyException e) {
       log.debug("When insert for key {}", su.getHash(), e);
       return su;
@@ -77,12 +77,13 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
 
   @Override
   public void update(ShortURL su) {
+//    System.err.println("----> Updating su.qrCode = " + su.getQrCode());
     try {
       jdbc.update(
-          "update shorturl set target=?, sponsor=?, created=?, owner=?, mode=?, safe=?, ip=?, country=? where hash=?",
+          "update shorturl set target=?, sponsor=?, created=?, owner=?, mode=?, safe=?, ip=?, country=?, qruri=? where hash=?",
           su.getTarget(), su.getSponsor(), su.getCreated(),
           su.getOwner(), su.getMode(), su.getSafe(), su.getIP(),
-          su.getCountry(), su.getHash());
+          su.getCountry(), su.getQrCode(), su.getHash());
     } catch (Exception e) {
       log.debug("When update for hash {}", su.getHash(), e);
     }

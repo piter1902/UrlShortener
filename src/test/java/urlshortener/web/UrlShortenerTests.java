@@ -3,6 +3,7 @@ package urlshortener.web;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -13,7 +14,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static urlshortener.fixtures.ShortURLFixture.someUrl;
 
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+
+import com.google.zxing.WriterException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -81,6 +86,8 @@ public class UrlShortenerTests {
   @Test
   public void thatShortenerCreatesARedirectWithSponsor() throws Exception {
     configureSave("http://sponsor.com/");
+    configureCreate("http://sponsor.com");
+    configureCreateQR();
 
     mockMvc.perform(
         post("/link").param("url", "http://example.org/").param(
@@ -96,6 +103,8 @@ public class UrlShortenerTests {
   @Test
   public void thatShortenerFailsIfTheURLisWrong() throws Exception {
     configureSave(null);
+    configureCreate(null);
+    configureCreateQR();
 
     mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
         .andExpect(status().isBadRequest());
@@ -110,6 +119,28 @@ public class UrlShortenerTests {
         .andExpect(status().isBadRequest());
   }
 
+  private void configureCreateQR() throws IOException, WriterException, URISyntaxException {
+    when(urlShortener.generateQRCode(any(), any())).then(
+            (Answer<String>) invocation -> ""
+    );
+  }
+
+  private void configureCreate(String sponsor) {
+    when(shortUrlService.create(any(), any(), any()))
+            .then((Answer<ShortURL>) invocation -> new ShortURL(
+                    "16a3e3e5",
+                    "http://example.org/",
+                    URI.create("http://localhost/16a3e3e5"),
+                    sponsor,
+                    null,
+                    null,
+                    0,
+                    false,
+                    null,
+                    null,
+                    null));
+  }
+
   private void configureSave(String sponsor) {
     when(shortUrlService.save(any(), any(), any()))
         .then((Answer<ShortURL>) invocation -> new ShortURL(
@@ -122,6 +153,7 @@ public class UrlShortenerTests {
             0,
             false,
             null,
-            null));
+            null,
+           null));
   }
 }

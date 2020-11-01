@@ -25,19 +25,28 @@ public class ShortURLService {
   }
 
   public ShortURL save(String url, String sponsor, String ip) {
-    ShortURL su = ShortURLBuilder.newInstance()
-        .target(url)
-        .uri((String hash) -> linkTo(methodOn(UrlShortenerController.class).redirectTo(hash, null))
-            .toUri())
-        .sponsor(sponsor)
-        .createdNow()
-        .randomOwner()
-        .temporaryRedirect()
-        .treatAsSafe()
-        .ip(ip)
-        .unknownCountry()
-        .build();
+    ShortURL su = create(url, sponsor, ip);
     return shortURLRepository.save(su);
+  }
+
+  public ShortURL saveQR(ShortURL su) {
+    shortURLRepository.update(su);
+    return su;
+  }
+
+  public ShortURL create(String url, String sponsor, String ip) {
+    return ShortURLBuilder.newInstance()
+            .target(url)
+            .uri((String hash) -> linkTo(methodOn(UrlShortenerController.class).redirectTo(hash, null))
+                    .toUri())
+            .sponsor(sponsor)
+            .createdNow()
+            .randomOwner()
+            .temporaryRedirect()
+            .treatAsSafe()
+            .ip(ip)
+            .unknownCountry()
+            .build();
   }
 
   public ShortURL markAs(ShortURL su, boolean mark) {

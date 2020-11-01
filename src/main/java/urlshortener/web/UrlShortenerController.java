@@ -1,5 +1,10 @@
 package urlshortener.web;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -11,16 +16,16 @@ import urlshortener.domain.ShortURL;
 import urlshortener.service.ClickService;
 import urlshortener.service.ShortURLService;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
 
 @RestController
@@ -58,6 +63,16 @@ public class UrlShortenerController {
                 "https"});
         if (urlValidator.isValid(url)) {
             ShortURL su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+            // Generate QR code
+            String qrCode = null;
+            try {
+                qrCode = generateQRCode(su);
+            } catch (WriterException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            su.setQrCode(qrCode);
             // Sends the shortURL to a message queue to validate
             // Source: https://www.baeldung.com/java-http-request
             try {
@@ -86,6 +101,28 @@ public class UrlShortenerController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /**
+     * Method that returns a QR code base64 encoded
+     * @param su shortUrl object to encode
+     * @return base64 encoded string that contains [su] target QR code.
+     * @throws WriterException iff QR encoder fails
+     * @throws IOException iff ByteArrayOutputStream fails
+     */
+    private String generateQRCode(ShortURL su) throws WriterException, IOException {
+        // Sources:
+        //  https://www.baeldung.com/java-generating-barcodes-qr-codes
+        //  https://stackoverflow.com/questions/7178937/java-bufferedimage-to-png-format-base64-string/25109418
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode(su.getUri().toASCIIString(), BarcodeFormat.QR_CODE, 200, 200);
+        BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+        // Convert BufferedImage to PNG
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+        String encoded = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+//        System.err.println(encoded);
+        return encoded;
     }
 
     private String extractIP(HttpServletRequest request) {

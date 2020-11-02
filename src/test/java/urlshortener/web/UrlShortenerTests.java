@@ -2,8 +2,7 @@ package urlshortener.web;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -17,6 +16,7 @@ import static urlshortener.fixtures.ShortURLFixture.someUrl;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Date;
 
 import com.google.zxing.WriterException;
 import org.junit.Before;
@@ -33,127 +33,138 @@ import urlshortener.service.ShortURLService;
 
 public class UrlShortenerTests {
 
-  private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-  @Mock
-  private ClickService clickService;
+    @Mock
+    private ClickService clickService;
 
-  @Mock
-  private ShortURLService shortUrlService;
+    @Mock
+    private ShortURLService shortUrlService;
 
-  @InjectMocks
-  private UrlShortenerController urlShortener;
+    @InjectMocks
+    private UrlShortenerController urlShortener;
 
-  @Before
-  public void setup() {
-    MockitoAnnotations.initMocks(this);
-    this.mockMvc = MockMvcBuilders.standaloneSetup(urlShortener).build();
-  }
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+        this.mockMvc = MockMvcBuilders.standaloneSetup(urlShortener).build();
+    }
 
-  @Test
-  public void thatRedirectToReturnsTemporaryRedirectIfKeyExists()
-      throws Exception {
-    when(shortUrlService.findByKey("someKey")).thenReturn(someUrl());
+    @Test
+    public void thatRedirectToReturnsTemporaryRedirectIfKeyExists()
+            throws Exception {
+        when(shortUrlService.findByKey("someKey")).thenReturn(someUrl());
 
-    mockMvc.perform(get("/{id}", "someKey")).andDo(print())
-        .andExpect(status().isTemporaryRedirect())
-        .andExpect(redirectedUrl("http://example.com/"));
-  }
+        mockMvc.perform(get("/{id}", "someKey")).andDo(print())
+                .andExpect(status().isTemporaryRedirect())
+                .andExpect(redirectedUrl("http://example.com/"));
+    }
 
-  @Test
-  public void thatRedirecToReturnsNotFoundIdIfKeyDoesNotExist()
-      throws Exception {
-    when(shortUrlService.findByKey("someKey")).thenReturn(null);
+    @Test
+    public void thatRedirecToReturnsNotFoundIdIfKeyDoesNotExist()
+            throws Exception {
+        when(shortUrlService.findByKey("someKey")).thenReturn(null);
 
-    mockMvc.perform(get("/{id}", "someKey")).andDo(print())
-        .andExpect(status().isNotFound());
-  }
+        mockMvc.perform(get("/{id}", "someKey")).andDo(print())
+                .andExpect(status().isNotFound());
+    }
 
-  @Test
-  public void thatShortenerCreatesARedirectIfTheURLisOK() throws Exception {
-    configureSave(null);
+    @Test
+    public void thatShortenerCreatesARedirectIfTheURLisOK() throws Exception {
+        configureSave(null);
+        // Configure shortUrlService to return a valid ShortURL
+        when(shortUrlService.create(any(), any(), any())).then(
+                (Answer<ShortURL>) invocation -> new ShortURL("16a3e3e5",
+                        "http://example.org", new URI("http://localhost/16a3e3e5"), null,
+                         new Date(System.currentTimeMillis()), null, 307, true,
+                        null, null, null)
+        );
+        // Configure shortUrlService to return null (URL not exists)
+        when(shortUrlService.findByKey("16a3e3e5")).then(
+                (Answer<ShortURL>) invocation -> null
+        );
 
-    mockMvc.perform(post("/link").param("url", "http://example.org/"))
-        .andDo(print())
-        .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.hash", is("16a3e3e5")))
-        .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
-        .andExpect(jsonPath("$.target", is("http://example.org/")))
-        .andExpect(jsonPath("$.sponsor", is(nullValue())));
-  }
+        mockMvc.perform(post("/link").param("url", "http://example.org/"))
+                .andDo(print())
+                .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hash", is("16a3e3e5")))
+                .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
+                .andExpect(jsonPath("$.target", is("http://example.org/")))
+                .andExpect(jsonPath("$.sponsor", is(nullValue())));
+    }
 
-  @Test
-  public void thatShortenerCreatesARedirectWithSponsor() throws Exception {
-    configureSave("http://sponsor.com/");
-    configureCreate("http://sponsor.com");
-    configureCreateQR();
+    @Test
+    public void thatShortenerCreatesARedirectWithSponsor() throws Exception {
+        configureSave("http://sponsor.com/");
+        configureCreate("http://sponsor.com");
+//    configureCreateQR();
 
-    mockMvc.perform(
-        post("/link").param("url", "http://example.org/").param(
-            "sponsor", "http://sponsor.com/")).andDo(print())
-        .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.hash", is("16a3e3e5")))
-        .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
-        .andExpect(jsonPath("$.target", is("http://example.org/")))
-        .andExpect(jsonPath("$.sponsor", is("http://sponsor.com/")));
-  }
+        mockMvc.perform(
+                post("/link").param("url", "http://example.org/").param(
+                        "sponsor", "http://sponsor.com/")).andDo(print())
+                .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.hash", is("16a3e3e5")))
+                .andExpect(jsonPath("$.uri", is("http://localhost/16a3e3e5")))
+                .andExpect(jsonPath("$.target", is("http://example.org/")))
+                .andExpect(jsonPath("$.sponsor", is("http://sponsor.com/")));
+    }
 
-  @Test
-  public void thatShortenerFailsIfTheURLisWrong() throws Exception {
-    configureSave(null);
-    configureCreate(null);
-    configureCreateQR();
+    @Test
+    public void thatShortenerFailsIfTheURLisWrong() throws Exception {
+        configureSave(null);
+        configureCreate(null);
+//    configureCreateQR();
 
-    mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
-        .andExpect(status().isBadRequest());
-  }
+        mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 
-  @Test
-  public void thatShortenerFailsIfTheRepositoryReturnsNull() throws Exception {
-    when(shortUrlService.save(any(String.class), any(String.class), any(String.class)))
-        .thenReturn(null);
+    @Test
+    public void thatShortenerFailsIfTheRepositoryReturnsNull() throws Exception {
+        when(shortUrlService.save(any(String.class), any(String.class), any(String.class)))
+                .thenReturn(null);
 
-    mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
-        .andExpect(status().isBadRequest());
-  }
+        mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
+                .andExpect(status().isBadRequest());
+    }
 
-  private void configureCreateQR() throws IOException, WriterException, URISyntaxException {
-    when(urlShortener.generateQRCode(any(), any())).then(
-            (Answer<String>) invocation -> ""
-    );
-  }
+    private void configureCreateQR() throws IOException, WriterException, URISyntaxException {
+        when(urlShortener.generateQRCode(any(), any())).then(
+                (Answer<String>) invocation -> ""
+        );
+    }
 
-  private void configureCreate(String sponsor) {
-    when(shortUrlService.create(any(), any(), any()))
-            .then((Answer<ShortURL>) invocation -> new ShortURL(
-                    "16a3e3e5",
-                    "http://example.org/",
-                    URI.create("http://localhost/16a3e3e5"),
-                    sponsor,
-                    null,
-                    null,
-                    0,
-                    false,
-                    null,
-                    null,
-                    null));
-  }
+    private void configureCreate(String sponsor) {
+        when(shortUrlService.create(any(), any(), any()))
+                .then((Answer<ShortURL>) invocation -> new ShortURL(
+                        "16a3e3e5",
+                        "http://example.org/",
+                        URI.create("http://localhost/16a3e3e5"),
+                        sponsor,
+                        null,
+                        null,
+                        0,
+                        false,
+                        null,
+                        null,
+                        null));
+    }
 
-  private void configureSave(String sponsor) {
-    when(shortUrlService.save(any(), any(), any()))
-        .then((Answer<ShortURL>) invocation -> new ShortURL(
-            "16a3e3e5",
-            "http://example.org/",
-            URI.create("http://localhost/16a3e3e5"),
-            sponsor,
-            null,
-            null,
-            0,
-            false,
-            null,
-            null,
-           null));
-  }
+    private void configureSave(String sponsor) {
+        when(shortUrlService.save(any(), any(), any()))
+                .then((Answer<ShortURL>) invocation -> new ShortURL(
+                        "16a3e3e5",
+                        "http://example.org/",
+                        URI.create("http://localhost/16a3e3e5"),
+                        sponsor,
+                        null,
+                        null,
+                        0,
+                        false,
+                        null,
+                        null,
+                        null));
+    }
 }

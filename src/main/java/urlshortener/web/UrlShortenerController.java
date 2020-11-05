@@ -93,7 +93,8 @@ public class UrlShortenerController {
                     npe.printStackTrace();
                 }
                 su.setQrCode(qrCode);
-                /*su =*/ shortUrlService.saveQR(su);
+                /*su =*/
+                shortUrlService.saveQR(su);
 
                 // Sends the shortURL to a message queue to validate
                 // Source: https://www.baeldung.com/java-http-request
@@ -189,24 +190,67 @@ public class UrlShortenerController {
 
     @PostMapping(value = "/uploadCSV")
     // TODO: Change return type to download the file
-    public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file) {
+    public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,
+                                            @RequestParam(value = "sponsor", required = false)
+                                                    String sponsor,
+                                            HttpServletRequest request) {
         try {
             // Contenido del fichero
             String content = new String(file.getBytes(), StandardCharsets.UTF_8);
             String[] lines = content.replaceAll("\r\n", "\n").split("\n");
+            String filename = UUID.randomUUID() + ".csv";
+            //CSV to return
+            File f = new File("files/" + filename);
+            PrintWriter pw = new PrintWriter(f);
             for (String s : lines) {
                 String[] fields = s.split(CSV_SEPARATOR);
                 // TODO: Short the URL line and append it to the return file
-                System.out.println(s);
+                for (String url : fields) {
+                    //Start to short urls
+                    UrlValidator urlValidator = new UrlValidator(new String[]{"http",
+                            "https"});
+                    if (urlValidator.isValid(url)) {
+                        ShortURL su = shortUrlService.create(url, sponsor, request.getRemoteAddr());
+                        su = shortUrlService.findByKey(su.getHash());
+                        if (su == null) {
+                            System.err.println("No existe. Creando.");
+                            // ShortUrl NOT exists. Saving it.
+                            su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+                        } else {
+                            // TODO: Check why qrCode is null here. I think problem is in database.
+                            // ShortUrl exists. Return it.
+                            System.err.println("Existe. Devolviendo.");
+                            su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+                        }
+                        //Escribimos en fichero destino
+                        pw.print(su.getUri() + ";");
+                        System.out.println("Original URL: " + url);
+                        System.out.println("Shorted URL: " + su.getUri());
+                    } else {
+                        //En este caso la URL leida no es valida
+                        //Escribimos en fichero destino un ERROR
+                        pw.print("ERROR;");
+                        System.err.println("URL INVALIDA: " + url);
+                    }
+
+                }
+                //Escribimos en fichero destino un salto de linea
+                pw.print('\n');
+                System.out.println("Full line: " + s);
             }
-            File f = new File("files/" + UUID.randomUUID() + ".csv");
-            PrintWriter pw = new PrintWriter(f);
-            pw.print(content);
             pw.close();
-            return new ResponseEntity<>(content.getBytes(), HttpStatus.OK);
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.add("content-disposition", "attachment; filename=" + filename);
+            responseHeaders.add("Content-Type", "text/csv");
+//            File f = new File("files/" + UUID.randomUUID() + ".csv");
+//            PrintWriter pw = new PrintWriter(f);
+//            pw.print(content);
+            // TODO:No estoy seguro que sea asi
+            return new ResponseEntity<>(file.getBytes(), responseHeaders, HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
+            return new ResponseEntity<>("Invalid file format!!".getBytes(), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//        return new ResponseEntity<>(file.getBytes(),responseHeaders, HttpStatus.OK);
     }
 }

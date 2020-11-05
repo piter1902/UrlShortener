@@ -24,4 +24,26 @@ $(document).ready(
                     }
                 });
             });
+         //Tutorial: https://attacomsian.com/blog/spring-boot-file-upload-with-ajax
+        $("#file-upload-form").on("submit", function(e){
+            e.preventDefault();
+            $.ajax({
+                url: "/uploadCSV",
+                type: "POST",
+                data: new FormData(this),
+                enctype: 'multipart/form-data',
+                processData: false,
+                contentType: false,
+                cache: false,
+                succes: function(res){
+                    console.log("RESULTADO:");
+                    console.log(res);
+//                    var iframe = document.getElementById("downloadFrame");
+//                    iframe .src = "/uploadCSV";
+                },
+                error: function(err) {
+                    console.error(err);
+                }
+            });
+        });
     });

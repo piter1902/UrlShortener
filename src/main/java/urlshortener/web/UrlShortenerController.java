@@ -1,11 +1,14 @@
 package urlshortener.web;
 
+import com.google.j2objc.annotations.AutoreleasePool;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -13,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
+import urlshortener.messagingrabbitmq.RabbitConfig;
+import urlshortener.messagingrabbitmq.Sender;
 import urlshortener.service.ClickService;
 import urlshortener.service.ShortURLService;
 
@@ -35,6 +40,9 @@ public class UrlShortenerController {
 
     private final ClickService clickService;
 
+    @Autowired
+    Sender sender;
+
     public UrlShortenerController(ShortURLService shortUrlService, ClickService clickService) {
         this.shortUrlService = shortUrlService;
         this.clickService = clickService;
@@ -43,6 +51,9 @@ public class UrlShortenerController {
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
     public ResponseEntity<?> redirectTo(@PathVariable String id,
                                         HttpServletRequest request) {
+
+        sender.send("Mensaje desde "+id);
+
         ShortURL l = shortUrlService.findByKey(id);
         if (l != null && l.getSafe()) {
             clickService.saveClick(id, extractIP(request));

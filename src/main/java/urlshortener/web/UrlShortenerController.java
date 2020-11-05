@@ -52,7 +52,7 @@ public class UrlShortenerController {
     public ResponseEntity<?> redirectTo(@PathVariable String id,
                                         HttpServletRequest request) {
 
-        sender.send("Mensaje desde "+id);
+        //sender.send("Mensaje desde "+id);
 
         ShortURL l = shortUrlService.findByKey(id);
         if (l != null && l.getSafe()) {

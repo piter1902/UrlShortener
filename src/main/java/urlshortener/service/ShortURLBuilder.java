@@ -49,7 +49,7 @@ public class ShortURLBuilder {
     ShortURLBuilder target(String url) {
         target = url;
         //noinspection UnstableApiUsage
-        hash = murmur3_32().hashString(url, StandardCharsets.UTF_8).toString();
+        hash = HashCalculator.calculateHash(url);
         return this;
     }
 

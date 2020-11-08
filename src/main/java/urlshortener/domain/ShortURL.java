@@ -83,4 +83,8 @@ public class ShortURL {
     public void setQrCode(String qrCode) {
         this.qrCode = qrCode;
     }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
+    }
 }

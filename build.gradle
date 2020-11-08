@@ -41,6 +41,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
 
+    // Google GSON for JSON serialization
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 publishing{

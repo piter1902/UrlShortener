@@ -98,7 +98,10 @@ public class UrlShortenerTests {
     public void thatShortenerCreatesARedirectWithSponsor() throws Exception {
         configureSave("http://sponsor.com/");
         configureCreate("http://sponsor.com");
-//    configureCreateQR();
+
+        when(shortUrlService.saveQR(any())).then(
+                (Answer<ShortURL>) invocation -> new ShortURL()
+        );
 
         mockMvc.perform(
                 post("/link").param("url", "http://example.org/").param(

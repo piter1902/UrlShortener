@@ -6,10 +6,14 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
@@ -19,13 +23,13 @@ import urlshortener.service.ShortURLService;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @RestController
@@ -51,11 +55,12 @@ public class UrlShortenerController {
 
     /**
      * Endpoint to redirect client to shortUrl location
-     * @param id of shortUrl (hash code)
+     *
+     * @param id      of shortUrl (hash code)
      * @param request object
      * @return 307 and redirects to shortUrl(id).target iff shortUrl(id) exists and it's safe.
-     *         400 iff shortUrl(id) not exists and shortUrl(id) isn't safe.
-     *         404 iff shortUrl(id) not exists.
+     * 400 iff shortUrl(id) not exists and shortUrl(id) isn't safe.
+     * 404 iff shortUrl(id) not exists.
      */
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
     public ResponseEntity<?> redirectTo(@PathVariable String id,
@@ -76,12 +81,13 @@ public class UrlShortenerController {
 
     /**
      * Endpoint that shorts [url]
-     * @param url uri to short
+     *
+     * @param url     uri to short
      * @param sponsor sponsor
      * @param request object
      * @return 201 iff shortUrl has been created successfully.
-     *         200 iff shortUrl hasn't been created (it exists)
-     *         400 iff url isn't valid (UrlValidator class)
+     * 200 iff shortUrl hasn't been created (it exists)
+     * 400 iff url isn't valid (UrlValidator class)
      */
     @RequestMapping(value = "/link", method = RequestMethod.POST)
     public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
@@ -146,6 +152,7 @@ public class UrlShortenerController {
 
     /**
      * Method that updates [su] object to create su.qrCode using su.uri(scheme, host, port)
+     *
      * @param su object to update.
      */
     private void updateQrURI(ShortURL su) {
@@ -191,10 +198,10 @@ public class UrlShortenerController {
 
     /**
      * Endpoint that returns QR code of shortUrl(hash)
+     *
      * @param hash to obtain shortUrl QR code.
      * @return 200 and QR code in bytes iff shortUrl exists.
-     *         404 iff shortUrl doesn't exists.
-     *
+     * 404 iff shortUrl doesn't exists.
      * @throws IOException iff ImageIO.write from QR code image to byteOutputStream fails.
      */
     @GetMapping(value = "/qr/{hash}.png", produces = MediaType.IMAGE_PNG_VALUE)
@@ -214,6 +221,7 @@ public class UrlShortenerController {
 
     /**
      * Method that returns ip address from a request
+     *
      * @param request object to extract ip address
      * @return ip address from [request] object
      */
@@ -223,6 +231,7 @@ public class UrlShortenerController {
 
     /**
      * Method that returns ResponseEntity with Location header and status code updated.
+     *
      * @param l shortUrl object to create response
      * @return ResponseEntity ResponseEntity with Location header and status code updated.
      */
@@ -232,9 +241,15 @@ public class UrlShortenerController {
         return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
     }
 
-    // TODO: Document with JavaDoc
+    /**
+     * Method that read a CSV file "file" which contains URLs and create a
+     * new CSV file that contains those original URLs shorted.
+     * @param file CSV File which contains URLs separated with ;
+     * @param sponsor sponsor
+     * @param request request
+     * @return created CSV file name
+     */
     @PostMapping(value = "/uploadCSV")
-    // TODO: Change return type to download the file
     public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,
                                             @RequestParam(value = "sponsor", required = false)
                                                     String sponsor,
@@ -249,17 +264,16 @@ public class UrlShortenerController {
             PrintWriter pw = new PrintWriter(f);
             for (String s : lines) {
                 String[] fields = s.split(CSV_SEPARATOR);
-                // TODO: Short the URL line and append it to the return file
                 for (String url : fields) {
-                    //Start to short urls
                     UrlValidator urlValidator = new UrlValidator(new String[]{"http",
                             "https"});
+                    // Check if the URL is valid
                     if (urlValidator.isValid(url)) {
                         ShortURL su = shortUrlService.create(url, sponsor, request.getRemoteAddr());
                         su = shortUrlService.findByKey(su.getHash());
                         if (su == null) {
                             System.err.println("No existe. Creando.");
-                            // ShortUrl NOT exists. Saving it.
+                            // ShortUrl DOES NOT exists. Saving it.
                             su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
                         } else {
                             // TODO: Check why qrCode is null here. I think problem is in database.
@@ -267,35 +281,50 @@ public class UrlShortenerController {
                             System.err.println("Existe. Devolviendo.");
                             su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
                         }
-                        //Escribimos en fichero destino
+                        // Write on the CSV file
                         pw.print(su.getUri() + ";");
                         System.out.println("Original URL: " + url);
                         System.out.println("Shorted URL: " + su.getUri());
                     } else {
-                        //En este caso la URL leida no es valida
-                        //Escribimos en fichero destino un ERROR
+                        // Url NOT valid
+                        // Write "ERROR" on the CSV file
                         pw.print("ERROR;");
-                        System.err.println("URL INVALIDA: " + url);
+                        System.err.println("Invalid URL: " + url);
                     }
 
                 }
-                //Escribimos en fichero destino un salto de linea
                 pw.print('\n');
                 System.out.println("Full line: " + s);
             }
+            // Close output stream
             pw.close();
-            HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add("content-disposition", "attachment; filename=" + filename);
-            responseHeaders.add("Content-Type", "text/csv");
-//            File f = new File("files/" + UUID.randomUUID() + ".csv");
-//            PrintWriter pw = new PrintWriter(f);
-//            pw.print(content);
-            // TODO:No estoy seguro que sea asi
-            return new ResponseEntity<>(file.getBytes(), responseHeaders, HttpStatus.OK);
+            // Return CSV file name and Http Status
+            return new ResponseEntity<>(filename.getBytes(), HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Invalid file format!!".getBytes(), HttpStatus.BAD_REQUEST);
         }
-//        return new ResponseEntity<>(file.getBytes(),responseHeaders, HttpStatus.OK);
     }
+
+    /**
+     * Endpoint that returns a CSV file that contains shorted URLs
+     *
+     * @param filename CSV file name
+     * @return Resource that represents the CSV file with shorted URLs
+     * @throws IOException Throws an exception if FileInputStream doesn't find the CSV file
+     */
+    @RequestMapping(path = "/files/{filename}", method = RequestMethod.GET)
+    public ResponseEntity<Resource> downloadCSV(@PathVariable(name = "filename") String filename) throws IOException {
+        System.err.println("Comenzamos la descarga de " + filename);
+        InputStreamResource resource = new InputStreamResource(new FileInputStream("files/" + filename));
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add("content-disposition", "attachment; filename=" + filename);
+        responseHeaders.add("Content-Type", "text/csv");
+
+        return ResponseEntity.ok()
+                .headers(responseHeaders)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(resource);
+    }
+
 }

@@ -31,13 +31,14 @@ $(document).ready(
                 url: "/uploadCSV",
                 type: "POST",
                 data: new FormData(this),
-                enctype: 'multipart/form-data',
+                //enctype: 'multipart/form-data',
                 processData: false,
                 contentType: false,
                 cache: false,
-                succes: function(res){
+                success: function(res){
                     console.log("RESULTADO:");
                     console.log(res);
+                    window.open("/files/"+res)
 //                    var iframe = document.getElementById("downloadFrame");
 //                    iframe .src = "/uploadCSV";
                 },

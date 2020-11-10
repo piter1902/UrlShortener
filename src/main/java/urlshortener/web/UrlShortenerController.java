@@ -6,7 +6,6 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
-import urlshortener.messagingrabbitmq.Sender;
 import urlshortener.service.ClickService;
 import urlshortener.service.HashCalculator;
 import urlshortener.service.ShortURLService;
@@ -37,13 +35,14 @@ public class UrlShortenerController {
 
     private final ClickService clickService;
 
-    @Autowired
-    Sender sender;
+    /*@Autowired
+    Sender sender;*/
 
     /**
      * Public constructor
+     *
      * @param shortUrlService short url service
-     * @param clickService click service
+     * @param clickService    click service
      */
     public UrlShortenerController(ShortURLService shortUrlService, ClickService clickService) {
         this.shortUrlService = shortUrlService;
@@ -109,7 +108,6 @@ public class UrlShortenerController {
                 /*su =*/
                 shortUrlService.saveQR(su);
                 updateQrURI(su);
-//                System.err.println("El QR vale = " + aux.getQrCode());
                 // Sends the shortURL to a message queue to validate
                 // Source: https://www.baeldung.com/java-http-request
                 try {
@@ -120,9 +118,7 @@ public class UrlShortenerController {
                         // Request returns 200. Url is valid.
                         shortUrlService.markAs(su, true);
                         System.out.format("URL %s valida\n", su.getTarget());
-                    } /*else {
-          //su = shortUrlService.markAs(su, false);
-        }*/
+                    }
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -134,16 +130,13 @@ public class UrlShortenerController {
                 // Returns shortURL
                 HttpHeaders h = new HttpHeaders();
                 h.setLocation(su.getUri());
-//                System.err.println("El objeto vale: " + new Gson().toJson(su));
                 return new ResponseEntity<>(su, h, HttpStatus.CREATED);
             } else {
                 // ShortUrl exists. Return it.
-                System.err.println("Existe. Devolviendo.");
                 ShortURL aux = shortUrlService.create(url, sponsor, request.getRemoteAddr());
                 su = shortUrlService.findByKey(HashCalculator.calculateHash(url));
                 su.setUri(aux.getUri());
                 updateQrURI(su);
-//                System.err.println("El objeto vale: " + new Gson().toJson(su));
                 return new ResponseEntity<>(su, HttpStatus.OK);
             }
         } else {
@@ -167,7 +160,7 @@ public class UrlShortenerController {
     }
 
     /**
-     * Method that returns QR code path for [su]
+     * Method that returns QR code path for [su]. qr directory must exist in project's root.
      *
      * @param su shortUrl object to encode
      * @return base64 encoded string that contains [su] target QR code.
@@ -191,9 +184,9 @@ public class UrlShortenerController {
 //        URI baseUri = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(),
 //                "/" + qrFilePath, null, null);
 //        String qrFileURI = baseUri.toASCIIString();
-        return qrFilePath;
 //        System.err.println(encoded);
 //        return encoded;
+        return qrFilePath;
     }
 
     /**

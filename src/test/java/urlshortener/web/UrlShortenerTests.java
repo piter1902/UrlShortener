@@ -1,24 +1,5 @@
 package urlshortener.web;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static urlshortener.fixtures.ShortURLFixture.someUrl;
-
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.Date;
-
-import com.google.zxing.WriterException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -30,6 +11,21 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import urlshortener.domain.ShortURL;
 import urlshortener.service.ClickService;
 import urlshortener.service.ShortURLService;
+
+import java.net.URI;
+import java.sql.Date;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static urlshortener.fixtures.ShortURLFixture.exampleOrgUrl;
+import static urlshortener.fixtures.ShortURLFixture.someUrl;
 
 public class UrlShortenerTests {
 
@@ -76,12 +72,20 @@ public class UrlShortenerTests {
         when(shortUrlService.create(any(), any(), any())).then(
                 (Answer<ShortURL>) invocation -> new ShortURL("16a3e3e5",
                         "http://example.org", new URI("http://localhost/16a3e3e5"), null,
-                         new Date(System.currentTimeMillis()), null, 307, true,
+                        new Date(System.currentTimeMillis()), null, 307, true,
                         null, null, null)
         );
         // Configure shortUrlService to return null (URL not exists)
         when(shortUrlService.findByKey("16a3e3e5")).then(
                 (Answer<ShortURL>) invocation -> null
+        );
+
+        when(shortUrlService.markAs(any(), eq(true))).then(
+                (Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSafe(true);
+                    return su;
+                }
         );
 
         mockMvc.perform(post("/link").param("url", "http://example.org/"))
@@ -103,6 +107,15 @@ public class UrlShortenerTests {
                 (Answer<ShortURL>) invocation -> new ShortURL()
         );
 
+        when(shortUrlService.markAs(any(), eq(true))).then(
+                (Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSponsor("http://sponsor.com/");
+                    su.setSafe(true);
+                    return su;
+                }
+        );
+
         mockMvc.perform(
                 post("/link").param("url", "http://example.org/").param(
                         "sponsor", "http://sponsor.com/")).andDo(print())
@@ -118,7 +131,6 @@ public class UrlShortenerTests {
     public void thatShortenerFailsIfTheURLisWrong() throws Exception {
         configureSave(null);
         configureCreate(null);
-//    configureCreateQR();
 
         mockMvc.perform(post("/link").param("url", "someKey")).andDo(print())
                 .andExpect(status().isBadRequest());
@@ -133,41 +145,21 @@ public class UrlShortenerTests {
                 .andExpect(status().isBadRequest());
     }
 
-    private void configureCreateQR() throws IOException, WriterException, URISyntaxException {
-        when(urlShortener.generateQRCode(any(), any())).then(
-                (Answer<String>) invocation -> ""
-        );
-    }
-
     private void configureCreate(String sponsor) {
         when(shortUrlService.create(any(), any(), any()))
-                .then((Answer<ShortURL>) invocation -> new ShortURL(
-                        "16a3e3e5",
-                        "http://example.org/",
-                        URI.create("http://localhost/16a3e3e5"),
-                        sponsor,
-                        null,
-                        null,
-                        0,
-                        false,
-                        null,
-                        null,
-                        null));
+                .then((Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSponsor(sponsor);
+                    return su;
+                });
     }
 
     private void configureSave(String sponsor) {
         when(shortUrlService.save(any(), any(), any()))
-                .then((Answer<ShortURL>) invocation -> new ShortURL(
-                        "16a3e3e5",
-                        "http://example.org/",
-                        URI.create("http://localhost/16a3e3e5"),
-                        sponsor,
-                        null,
-                        null,
-                        0,
-                        false,
-                        null,
-                        null,
-                        null));
+                .then((Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSponsor(sponsor);
+                    return su;
+                });
     }
 }

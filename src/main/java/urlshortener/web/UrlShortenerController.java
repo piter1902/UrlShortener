@@ -116,7 +116,7 @@ public class UrlShortenerController {
                     con.setRequestMethod("GET");
                     if (con.getResponseCode() == 200) {
                         // Request returns 200. Url is valid.
-                        shortUrlService.markAs(su, true);
+                        su = shortUrlService.markAs(su, true);
                         System.out.format("URL %s valida\n", su.getTarget());
                     }
                 } catch (MalformedURLException e) {

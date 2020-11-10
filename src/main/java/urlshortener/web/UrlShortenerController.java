@@ -40,11 +40,24 @@ public class UrlShortenerController {
     @Autowired
     Sender sender;
 
+    /**
+     * Public constructor
+     * @param shortUrlService short url service
+     * @param clickService click service
+     */
     public UrlShortenerController(ShortURLService shortUrlService, ClickService clickService) {
         this.shortUrlService = shortUrlService;
         this.clickService = clickService;
     }
 
+    /**
+     * Endpoint to redirect client to shortUrl location
+     * @param id of shortUrl (hash code)
+     * @param request object
+     * @return 307 and redirects to shortUrl(id).target iff shortUrl(id) exists and it's safe.
+     *         400 iff shortUrl(id) not exists and shortUrl(id) isn't safe.
+     *         404 iff shortUrl(id) not exists.
+     */
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
     public ResponseEntity<?> redirectTo(@PathVariable String id,
                                         HttpServletRequest request) {
@@ -62,6 +75,15 @@ public class UrlShortenerController {
         }
     }
 
+    /**
+     * Endpoint that shorts [url]
+     * @param url uri to short
+     * @param sponsor sponsor
+     * @param request object
+     * @return 201 iff shortUrl has been created successfully.
+     *         200 iff shortUrl hasn't been created (it exists)
+     *         400 iff url isn't valid (UrlValidator class)
+     */
     @RequestMapping(value = "/link", method = RequestMethod.POST)
     public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
                                               @RequestParam(value = "sponsor", required = false)
@@ -80,12 +102,8 @@ public class UrlShortenerController {
                 String qrCode = null;
                 try {
                     qrCode = generateQRCode(su, su.getUri());
-                } catch (WriterException e) {
+                } catch (WriterException | IOException | NullPointerException e) {
                     e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NullPointerException npe) {
-                    npe.printStackTrace();
                 }
                 su.setQrCode(qrCode);
                 /*su =*/
@@ -133,6 +151,10 @@ public class UrlShortenerController {
         }
     }
 
+    /**
+     * Method that updates [su] object to create su.qrCode using su.uri(scheme, host, port)
+     * @param su object to update.
+     */
     private void updateQrURI(ShortURL su) {
         // Add URI prefix to qrCode path
         URI uri = su.getUri();
@@ -145,7 +167,7 @@ public class UrlShortenerController {
     }
 
     /**
-     * Method that returns a QR code base64 encoded
+     * Method that returns QR code path for [su]
      *
      * @param su shortUrl object to encode
      * @return base64 encoded string that contains [su] target QR code.
@@ -174,6 +196,14 @@ public class UrlShortenerController {
 //        return encoded;
     }
 
+    /**
+     * Endpoint that returns QR code of shortUrl(hash)
+     * @param hash to obtain shortUrl QR code.
+     * @return 200 and QR code in bytes iff shortUrl exists.
+     *         404 iff shortUrl doesn't exists.
+     *
+     * @throws IOException iff ImageIO.write from QR code image to byteOutputStream fails.
+     */
     @GetMapping(value = "/qr/{hash}.png", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash") String hash) throws IOException {
@@ -189,16 +219,27 @@ public class UrlShortenerController {
         }
     }
 
+    /**
+     * Method that returns ip address from a request
+     * @param request object to extract ip address
+     * @return ip address from [request] object
+     */
     private String extractIP(HttpServletRequest request) {
         return request.getRemoteAddr();
     }
 
+    /**
+     * Method that returns ResponseEntity with Location header and status code updated.
+     * @param l shortUrl object to create response
+     * @return ResponseEntity ResponseEntity with Location header and status code updated.
+     */
     private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
         HttpHeaders h = new HttpHeaders();
         h.setLocation(URI.create(l.getTarget()));
         return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
     }
 
+    // TODO: Document with JavaDoc
     @PostMapping(value = "/uploadCSV")
     // TODO: Change return type to download the file
     public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,

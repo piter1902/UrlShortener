@@ -20,6 +20,10 @@ out/
 
 db/
 
+# QR code directory
 qr/
+
+# Files directory
+files/
 
 .DS_Store

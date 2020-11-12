@@ -6,14 +6,12 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
@@ -23,13 +21,10 @@ import urlshortener.service.ShortURLService;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 @RestController
@@ -114,24 +109,8 @@ public class UrlShortenerController {
                 /*su =*/
                 shortUrlService.saveQR(su);
                 updateQrURI(su);
-                // Sends the shortURL to a message queue to validate
-                // Source: https://www.baeldung.com/java-http-request
-                try {
-                    URL url_check = new URL(url);
-                    HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
-                    con.setRequestMethod("GET");
-                    if (con.getResponseCode() == 200) {
-                        // Request returns 200. Url is valid.
-                        su = shortUrlService.markAs(su, true);
-                        System.out.format("URL %s valida\n", su.getTarget());
-                    }
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    //e.printStackTrace();
-                    System.out.println("LA URL NO ES VALIDA");
-                    su = shortUrlService.markAs(su, false);
-                }
+                // validate url
+                su = validateURL(url, su);
 
                 // Returns shortURL
                 HttpHeaders h = new HttpHeaders();
@@ -148,6 +127,37 @@ public class UrlShortenerController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    /**
+     * Method that checks if url is safe
+     *
+     * @param url to check safety
+     * @param su  shortUrl object to modify (if needed) safe.
+     * @return [su] object with safe field updated.
+     * [su.safe] will be true if HTTP GET over url returns 200.
+     * Else will be false.
+     */
+    private ShortURL validateURL(String url, ShortURL su) {
+        // TODO: Sends the shortURL to a message queue to validate
+        // Source: https://www.baeldung.com/java-http-request
+        try {
+            URL url_check = new URL(url);
+            HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
+            con.setRequestMethod("GET");
+            if (con.getResponseCode() == 200) {
+                // Request returns 200. Url is valid.
+                su = shortUrlService.markAs(su, true);
+                System.out.format("URL %s valida\n", su.getTarget());
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            //e.printStackTrace();
+            System.out.println("LA URL NO ES VALIDA");
+            su = shortUrlService.markAs(su, false);
+        }
+        return su;
     }
 
     /**
@@ -244,7 +254,8 @@ public class UrlShortenerController {
     /**
      * Method that read a CSV file "file" which contains URLs and create a
      * new CSV file that contains those original URLs shorted.
-     * @param file CSV File which contains URLs separated with ;
+     *
+     * @param file    CSV File which contains URLs separated with ;
      * @param sponsor sponsor
      * @param request request
      * @return created CSV file name
@@ -275,16 +286,17 @@ public class UrlShortenerController {
                             System.err.println("No existe. Creando.");
                             // ShortUrl DOES NOT exists. Saving it.
                             su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
+                            // Check if url is safe
+                            su = validateURL(url, su);
                         } else {
-                            // TODO: Check why qrCode is null here. I think problem is in database.
                             // ShortUrl exists. Return it.
                             System.err.println("Existe. Devolviendo.");
                             su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
                         }
                         // Write on the CSV file
                         pw.print(su.getUri() + ";");
-                        System.out.println("Original URL: " + url);
-                        System.out.println("Shorted URL: " + su.getUri());
+                        System.err.println("Original URL: " + url);
+                        System.err.println("Shorted URL: " + su.getUri());
                     } else {
                         // Url NOT valid
                         // Write "ERROR" on the CSV file
@@ -294,7 +306,7 @@ public class UrlShortenerController {
 
                 }
                 pw.print('\n');
-                System.out.println("Full line: " + s);
+                System.err.println("Full line: " + s);
             }
             // Close output stream
             pw.close();

@@ -2,6 +2,7 @@ package urlshortener.integration;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,11 @@ public class SystemTests {
   @Autowired
   private ShortURLRepo shortURLRepo;
 
+  @Before
+  public void before() {
+    shortURLRepo.deleteAll();
+  }
+
   @Test
   public void testHome() {
     ResponseEntity<String> entity = restTemplate.getForEntity("/", String.class);
@@ -62,9 +68,6 @@ public class SystemTests {
 //  @Ignore
   @Test
   public void testCreateLink() throws Exception {
-    // Delete of 16a3e3e5 object
-    shortURLRepo.deleteById("16a3e3e5");
-
     ResponseEntity<String> entity = postLink("http://example.org/");
 
     assertThat(entity.getStatusCode(), is(HttpStatus.CREATED));

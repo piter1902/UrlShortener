@@ -72,7 +72,7 @@ public class UrlShortenerTests {
         when(shortUrlService.create(any(), any(), any())).then(
                 (Answer<ShortURL>) invocation -> new ShortURL("16a3e3e5",
                         "http://example.org", new URI("http://localhost/16a3e3e5"), null,
-                        new Date(System.currentTimeMillis()), null, 307, true,
+                        new Date(System.currentTimeMillis()).toString(), null, 307, true,
                         null, null, null)
         );
         // Configure shortUrlService to return null (URL not exists)

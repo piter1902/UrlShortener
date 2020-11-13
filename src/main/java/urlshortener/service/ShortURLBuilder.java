@@ -1,16 +1,12 @@
 package urlshortener.service;
 
-import static com.google.common.hash.Hashing.murmur3_32;
-
+import org.springframework.http.HttpStatus;
+import urlshortener.domain.ShortURL;
 
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.util.UUID;
 import java.util.function.Function;
-
-import org.springframework.http.HttpStatus;
-import urlshortener.domain.ShortURL;
 
 public class ShortURLBuilder {
 
@@ -18,7 +14,7 @@ public class ShortURLBuilder {
     private String target;
     private URI uri;
     private String sponsor;
-    private Date created;
+    private String created;
     private String owner;
     private Integer mode;
     private Boolean safe;
@@ -59,7 +55,7 @@ public class ShortURLBuilder {
     }
 
     ShortURLBuilder createdNow() {
-        this.created = new Date(System.currentTimeMillis());
+        this.created = new Date(System.currentTimeMillis()).toString();
         return this;
     }
 

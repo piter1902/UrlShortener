@@ -23,7 +23,7 @@ public class ShortURLRepositoryImpl implements ShortURLRepository {
    */
   private static final RowMapper<ShortURL> rowMapper =
           (rs, rowNum) -> new ShortURL(rs.getString("hash"), rs.getString("target"),
-                  null, rs.getString("sponsor"), rs.getDate("created"),
+                  null, rs.getString("sponsor"), rs.getString("created"),
                   rs.getString("owner"), rs.getInt("mode"),
                   rs.getBoolean("safe"), rs.getString("ip"),
                   rs.getString("country"), rs.getString("qruri"));

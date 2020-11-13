@@ -2,8 +2,12 @@ package urlshortener.service;
 
 import org.springframework.stereotype.Service;
 import urlshortener.domain.ShortURL;
-import urlshortener.repository.ShortURLRepository;
+import urlshortener.repository.ShortURLRepo;
 import urlshortener.web.UrlShortenerController;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -11,16 +15,21 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Service
 public class ShortURLService {
 
-  private final ShortURLRepository shortURLRepository;
+  //private final ShortURLRepository shortURLRepository;
+  private final ShortURLRepo shortURLRepo;
 
   /**
    * Public constructor
    *
-   * @param shortURLRepository shortUrlRepository
+   * @param shortURLRepo shortUrlRepository
    */
-  public ShortURLService(ShortURLRepository shortURLRepository) {
+  /*public ShortURLService(ShortURLRepository shortURLRepository) {
     this.shortURLRepository = shortURLRepository;
+  }*/
+  public ShortURLService(ShortURLRepo shortURLRepo) {
+    this.shortURLRepo = shortURLRepo;
   }
+
 
   /**
    * Method that finds the shortUrl object with hash = [id]
@@ -29,7 +38,8 @@ public class ShortURLService {
    * @return ShortUrl object with hash = [id]
    */
   public ShortURL findByKey(String id) {
-    return shortURLRepository.findByKey(id);
+    Optional<ShortURL> ret = shortURLRepo.findById(id);
+    return ret.orElse(null);
   }
 
   /**
@@ -65,7 +75,7 @@ public class ShortURLService {
    */
   public ShortURL save(String url, String sponsor, String ip) {
     ShortURL su = create(url, sponsor, ip);
-    return shortURLRepository.save(su);
+    return shortURLRepo.save(su);
   }
 
   /**
@@ -75,8 +85,9 @@ public class ShortURLService {
    * @return [su] object
    */
   public ShortURL saveQR(ShortURL su) {
-    shortURLRepository.update(su);
-    return su;
+    /*shortURLRepo.update(su);
+    return su;*/
+    return shortURLRepo.save(separateQrPath(su));
   }
 
   /**
@@ -87,6 +98,19 @@ public class ShortURLService {
    * @return [su] object updated with [su.safebness] = [mark]
    */
   public ShortURL markAs(ShortURL su, boolean mark) {
-    return shortURLRepository.mark(su, mark);
+//    return shortURLRepository.mark(su, mark);
+    su.setSafe(mark);
+    return shortURLRepo.save(separateQrPath(su));
+  }
+
+  private ShortURL separateQrPath(ShortURL su) {
+    try {
+      URI qrUri = new URI(su.getQrCode());
+      System.err.println("QR URI = " + qrUri.getPath());
+      su.setQrCode(qrUri.getPath());
+    } catch (URISyntaxException e) {
+      // It's not a URI
+    }
+    return su;
   }
 }

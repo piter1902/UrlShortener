@@ -1,16 +1,21 @@
 package urlshortener.domain;
 
-import java.awt.image.BufferedImage;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+
 import java.net.URI;
-import java.sql.Date;
 
-public class ShortURL {
+@RedisHash("ShortUrl")
+public class ShortURL /*implements Serializable*/ {
 
+    @Id
     private String hash;
     private String target;
     private URI uri;
     private String sponsor;
-    private Date created;
+    //    @JsonSerialize(using = DateSerializer.class)
+//    @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+    private String created;
     private String owner;
     private Integer mode;
     private Boolean safe;
@@ -20,7 +25,7 @@ public class ShortURL {
     private String qrCode;
 
     public ShortURL(String hash, String target, URI uri, String sponsor,
-                    Date created, String owner, Integer mode, Boolean safe, String ip,
+                    String created, String owner, Integer mode, Boolean safe, String ip,
                     String country, String qrCode) {
         this.hash = hash;
         this.target = target;
@@ -50,7 +55,7 @@ public class ShortURL {
         return uri;
     }
 
-    public Date getCreated() {
+    public String getCreated() {
         return created;
     }
 
@@ -94,7 +99,7 @@ public class ShortURL {
         this.sponsor = sponsor;
     }
 
-    public void setCreated(java.sql.Date created) {
+    public void setCreated(String created) {
         this.created = created;
     }
 

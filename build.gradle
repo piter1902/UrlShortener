@@ -18,9 +18,12 @@ repositories {
 }
 
 dependencies {
+    // Spring dependencies
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'commons-validator:commons-validator:1.6'
     implementation 'com.google.guava:guava:28.1-jre'
@@ -28,6 +31,7 @@ dependencies {
     runtime 'org.webjars:bootstrap:3.3.5'
     runtime 'org.webjars:jquery:2.1.4'
 
+    // DB
     runtime 'org.hsqldb:hsqldb'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

@@ -4,3 +4,7 @@ jdk: openjdk8
 # Services
 services:
   - rabbitmq
+  - redis
+
+before_script:
+  - sudo redis-server --port 6379 --requirepass mypass

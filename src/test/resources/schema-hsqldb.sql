@@ -10,7 +10,7 @@ CREATE TABLE SHORTURL
     HASH    VARCHAR(30) PRIMARY KEY, -- Key
     TARGET  VARCHAR(1024),           -- Original URL
     SPONSOR VARCHAR(1024),           -- Sponsor URL
-    CREATED TIMESTAMP,               -- Creation date
+    CREATED VARCHAR(256),               -- Creation date
     OWNER   VARCHAR(255),            -- User id
     MODE    INTEGER,                 -- Redirect mode
     SAFE    BOOLEAN,                 -- Safe target

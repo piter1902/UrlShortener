@@ -1,11 +1,14 @@
 package urlshortener.web;
 
+import com.google.gson.Gson;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -29,6 +32,9 @@ import java.util.UUID;
 
 @RestController
 public class UrlShortenerController {
+
+    private static final Logger log = LoggerFactory.getLogger(UrlShortenerController.class);
+
     public static final String CSV_SEPARATOR = ";";
     private final ShortURLService shortUrlService;
 
@@ -95,7 +101,7 @@ public class UrlShortenerController {
             ShortURL su = shortUrlService.create(url, sponsor, request.getRemoteAddr());
             su = shortUrlService.findByKey(su.getHash());
             if (su == null) {
-                System.err.println("No existe. Creando.");
+                log.debug("No existe. Creando.");
                 // ShortUrl NOT exists. Saving it.
                 su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
                 // Generate QR code
@@ -108,16 +114,17 @@ public class UrlShortenerController {
                 su.setQrCode(qrCode);
                 /*su =*/
                 shortUrlService.saveQR(su);
-                updateQrURI(su);
                 // validate url
                 su = validateURL(url, su);
-
+                System.err.println("En la creación" + new Gson().toJson(su));
                 // Returns shortURL
                 HttpHeaders h = new HttpHeaders();
                 h.setLocation(su.getUri());
+                updateQrURI(su);
                 return new ResponseEntity<>(su, h, HttpStatus.CREATED);
             } else {
                 // ShortUrl exists. Return it.
+                log.debug("ShortUrl exists. Returning.");
                 ShortURL aux = shortUrlService.create(url, sponsor, request.getRemoteAddr());
                 su = shortUrlService.findByKey(HashCalculator.calculateHash(url));
                 su.setUri(aux.getUri());
@@ -154,7 +161,7 @@ public class UrlShortenerController {
             e.printStackTrace();
         } catch (IOException e) {
             //e.printStackTrace();
-            System.out.println("LA URL NO ES VALIDA");
+            log.debug("LA URL NO ES VALIDA");
             su = shortUrlService.markAs(su, false);
         }
         return su;
@@ -184,7 +191,7 @@ public class UrlShortenerController {
      * @throws WriterException iff QR encoder fails
      * @throws IOException     iff ByteArrayOutputStream fails
      */
-    public String generateQRCode(ShortURL su, URI uri) throws WriterException, IOException {
+    private String generateQRCode(ShortURL su, URI uri) throws WriterException, IOException {
         // Sources:
         //  https://www.baeldung.com/java-generating-barcodes-qr-codes
         //  https://stackoverflow.com/questions/7178937/java-bufferedimage-to-png-format-base64-string/25109418
@@ -218,6 +225,7 @@ public class UrlShortenerController {
     @ResponseBody
     public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash") String hash) throws IOException {
         ShortURL su = shortUrlService.findByKey(hash);
+        log.debug(new Gson().toJson(su));
         if (su != null) {
             // QR exits
             BufferedImage bufferedImage = ImageIO.read(new File("qr/" + hash + ".png"));

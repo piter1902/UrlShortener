@@ -1,17 +1,7 @@
 package urlshortener.integration;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
-
-
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
-import java.net.URI;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +15,14 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import java.net.URI;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -58,16 +56,16 @@ public class SystemTests {
 
   @Test
   public void testCreateLink() throws Exception {
-    ResponseEntity<String> entity = postLink("http://example.com/");
+    ResponseEntity<String> entity = postLink("http://example.org/");
 
     assertThat(entity.getStatusCode(), is(HttpStatus.CREATED));
     assertThat(entity.getHeaders().getLocation(),
-        is(new URI("http://localhost:" + this.port + "/f684a3c4")));
+            is(new URI("http://localhost:" + this.port + "/16a3e3e5")));
     assertThat(entity.getHeaders().getContentType(), is(new MediaType("application", "json")));
     ReadContext rc = JsonPath.parse(entity.getBody());
-    assertThat(rc.read("$.hash"), is("f684a3c4"));
-    assertThat(rc.read("$.uri"), is("http://localhost:" + this.port + "/f684a3c4"));
-    assertThat(rc.read("$.target"), is("http://example.com/"));
+    assertThat(rc.read("$.hash"), is("16a3e3e5"));
+    assertThat(rc.read("$.uri"), is("http://localhost:" + this.port + "/16a3e3e5"));
+    assertThat(rc.read("$.target"), is("http://example.org/"));
     assertThat(rc.read("$.sponsor"), is(nullValue()));
   }
 

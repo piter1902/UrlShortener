@@ -1,19 +1,22 @@
 package urlshortener.domain;
 
-import java.sql.Date;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
 
+@RedisHash("Click")
 public class Click {
 
+    @Id
     private Long id;
     private String hash;
-    private Date created;
+    private String created;
     private String referrer;
     private String browser;
     private String platform;
     private String ip;
     private String country;
 
-    public Click(Long id, String hash, Date created, String referrer,
+    public Click(Long id, String hash, String created, String referrer,
                  String browser, String platform, String ip, String country) {
         this.id = id;
         this.hash = hash;
@@ -33,7 +36,7 @@ public class Click {
         return hash;
     }
 
-    public Date getCreated() {
+    public String getCreated() {
         return created;
     }
 
@@ -65,7 +68,7 @@ public class Click {
         this.hash = hash;
     }
 
-    public void setCreated(java.sql.Date created) {
+    public void setCreated(String created) {
         this.created = created;
     }
 

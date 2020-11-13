@@ -1,12 +1,13 @@
 package urlshortener.service;
 
-import java.sql.Date;
 import urlshortener.domain.Click;
+
+import java.sql.Date;
 
 public class ClickBuilder {
 
   private String hash;
-  private Date created;
+  private String created;
   private String referrer;
   private String browser;
   private String platform;
@@ -28,7 +29,7 @@ public class ClickBuilder {
   }
 
   ClickBuilder createdNow() {
-    this.created = new Date(System.currentTimeMillis());
+    this.created = new Date(System.currentTimeMillis()).toString();
     return this;
   }
 

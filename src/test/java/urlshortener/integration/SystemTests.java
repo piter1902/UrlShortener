@@ -55,7 +55,7 @@ public class SystemTests {
     assertThat(entity.getBody(), containsString("body"));
   }
 
-  // TODO: Check why is this tests failing in Travis-CI
+  // TODO: Check why this test is failing in Travis-CI
   @Ignore
   @Test
   public void testCreateLink() throws Exception {

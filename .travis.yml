@@ -9,4 +9,4 @@ services:
 before_script:
   - sudo service redis-server stop
   - sudo redis-server --port 6379 --requirepass mypass >/dev/null 2>&1 &
-  - sleep 5000 # Sleep 5 seconds
+  - sleep 5 # Sleep 5 seconds

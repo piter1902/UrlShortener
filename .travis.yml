@@ -7,4 +7,5 @@ services:
   - redis
 
 before_script:
-  - sudo redis-server --requirepass mypass
+  - sudo service redis-server stop
+  - sudo redis-server --port 6379--requirepass mypass

@@ -9,4 +9,8 @@ services:
 before_script:
   - sudo service redis-server stop
   - sudo redis-server --port 6379 --requirepass mypass >/dev/null 2>&1 &
-  - sleep 5 # Sleep 5 seconds
+  - sleep 10 # Sleep 10 seconds
+
+after_script:
+  # Show error
+  - cat /home/travis/build/piter1902/UrlShortener/build/reports/tests/test/index.html

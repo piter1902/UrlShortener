@@ -2,8 +2,8 @@ package urlshortener.integration;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +16,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import urlshortener.repository.ShortURLRepo;
 
 import java.net.URI;
 
@@ -36,13 +37,21 @@ public class SystemTests {
   @LocalServerPort
   private int port;
 
+  @Autowired
+  private ShortURLRepo shortURLRepo;
+
+  @BeforeEach
+  private void setup() {
+    shortURLRepo.deleteAll();
+  }
+
   @Test
   public void testHome() {
     ResponseEntity<String> entity = restTemplate.getForEntity("/", String.class);
     assertThat(entity.getStatusCode(), is(HttpStatus.OK));
     assertNotNull(entity.getHeaders().getContentType());
     assertTrue(
-        entity.getHeaders().getContentType().isCompatibleWith(new MediaType("text", "html")));
+            entity.getHeaders().getContentType().isCompatibleWith(new MediaType("text", "html")));
     assertThat(entity.getBody(), containsString("<title>URL"));
   }
 
@@ -56,7 +65,7 @@ public class SystemTests {
   }
 
   // TODO: Check why this test is failing in Travis-CI
-  @Ignore
+//  @Ignore
   @Test
   public void testCreateLink() throws Exception {
     ResponseEntity<String> entity = postLink("http://example.org/");

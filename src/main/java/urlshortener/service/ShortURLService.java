@@ -35,7 +35,7 @@ public class ShortURLService {
    * Method that finds the shortUrl object with hash = [id]
    *
    * @param id hash to find
-   * @return ShortUrl object with hash = [id]
+   * @return ShortUrl object with hash = [id] or {@literal null} if not exists
    */
   public ShortURL findByKey(String id) {
     Optional<ShortURL> ret = shortURLRepo.findById(id);

@@ -35,7 +35,7 @@ public class UrlShortenerController {
 
     private static final Logger log = LoggerFactory.getLogger(UrlShortenerController.class);
 
-    public static final String CSV_SEPARATOR = ";";
+    private static final String CSV_SEPARATOR = ";";
     private final ShortURLService shortUrlService;
 
     private final ClickService clickService;
@@ -185,6 +185,10 @@ public class UrlShortenerController {
 
     /**
      * Method that returns QR code path for [su]. qr directory must exist in project's root.
+     * <p>
+     * Sources:
+     * https://www.baeldung.com/java-generating-barcodes-qr-codes
+     * https://stackoverflow.com/questions/7178937/java-bufferedimage-to-png-format-base64-string/25109418
      *
      * @param su shortUrl object to encode
      * @return base64 encoded string that contains [su] target QR code.
@@ -192,24 +196,12 @@ public class UrlShortenerController {
      * @throws IOException     iff ByteArrayOutputStream fails
      */
     private String generateQRCode(ShortURL su, URI uri) throws WriterException, IOException {
-        // Sources:
-        //  https://www.baeldung.com/java-generating-barcodes-qr-codes
-        //  https://stackoverflow.com/questions/7178937/java-bufferedimage-to-png-format-base64-string/25109418
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(su.getUri().toASCIIString(), BarcodeFormat.QR_CODE, 200, 200);
         BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
-        // Convert BufferedImage to PNG
-//        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-//        String encoded = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
         // Save QR to /qr directory
-        String qrFilePath = "qr/" + su.getHash() + ".png";
-        ImageIO.write(bufferedImage, "png", new File(qrFilePath));
-//        URI baseUri = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(),
-//                "/" + qrFilePath, null, null);
-//        String qrFileURI = baseUri.toASCIIString();
-//        System.err.println(encoded);
-//        return encoded;
+        String qrFilePath = "qr/" + su.getHash();
+        ImageIO.write(bufferedImage, "png", new File(qrFilePath + ".png"));
         return qrFilePath;
     }
 
@@ -221,7 +213,7 @@ public class UrlShortenerController {
      * 404 iff shortUrl doesn't exists.
      * @throws IOException iff ImageIO.write from QR code image to byteOutputStream fails.
      */
-    @GetMapping(value = "/qr/{hash}.png", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/qr/{hash}", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash") String hash) throws IOException {
         ShortURL su = shortUrlService.findByKey(hash);

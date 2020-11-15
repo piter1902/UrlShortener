@@ -31,8 +31,8 @@ dependencies {
     runtime 'org.webjars:bootstrap:3.3.5'
     runtime 'org.webjars:jquery:2.1.4'
 
-    // DB
-    runtime 'org.hsqldb:hsqldb'
+    // DB (not in use)
+    //runtime 'org.hsqldb:hsqldb'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.httpcomponents:httpclient'

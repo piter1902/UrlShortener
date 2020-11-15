@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
     // Spring dependencies
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    //implementation 'org.springframework.boot:spring-boot-starter-data-jdbc' // (not in use)
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     // Redis

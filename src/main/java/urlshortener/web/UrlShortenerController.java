@@ -18,10 +18,11 @@ import urlshortener.service.HashCalculator;
 import urlshortener.service.QRCodeService;
 import urlshortener.service.ShortURLService;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -98,6 +99,7 @@ public class UrlShortenerController {
     public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
                                               @RequestParam(value = "sponsor", required = false)
                                                       String sponsor,
+                                              @RequestParam(value = "qrcode", required = false) boolean qrcode,
                                               HttpServletRequest request) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http",
                 "https"});
@@ -108,18 +110,22 @@ public class UrlShortenerController {
                 log.debug("No existe. Creando.");
                 // ShortUrl NOT exists. Saving it.
                 su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
-                // Generate QR code
-                String qrCode = qrCodeService.getQRCode(su);
-                su.setQrCode(qrCode);
-                /*su =*/
-                shortUrlService.saveQrPath(su);
+                if (qrcode) {
+                    // Generate QR code
+                    String qrCode = qrCodeService.getQRCode(su);
+                    su.setQrCode(qrCode);
+                    shortUrlService.saveQrPath(su);
+                }
                 // validate url
                 su = validateURL(url, su);
                 System.err.println("En la creación" + new Gson().toJson(su));
                 // Returns shortURL
                 HttpHeaders h = new HttpHeaders();
                 h.setLocation(su.getUri());
-                su = qrCodeService.updateQrURI(su);
+                // Update QRCode URI if needed
+                if (qrcode) {
+                    su = qrCodeService.updateQrURI(su);
+                }
                 return new ResponseEntity<>(su, h, HttpStatus.CREATED);
             } else {
                 // ShortUrl exists. Return it.
@@ -127,7 +133,22 @@ public class UrlShortenerController {
                 ShortURL aux = shortUrlService.create(url, sponsor, request.getRemoteAddr());
                 su = shortUrlService.findByKey(HashCalculator.calculateHash(url));
                 su.setUri(aux.getUri());
-                su = qrCodeService.updateQrURI(su);
+                // Update QRCode URI if needed
+                if (qrcode) {
+                    // QR code required
+                    if (su.getQrCode().isEmpty()) {
+                        // Shorturl object exists but doesn't have qr code associated
+                        // We have to generate QRCode and store it
+                        String qrCodePath = qrCodeService.getQRCode(su);
+                        su.setQrCode(qrCodePath);
+                        shortUrlService.saveQrPath(su);
+                    }
+                    // Updating QRcode path uri
+                    su = qrCodeService.updateQrURI(su);
+                } else {
+                    // Set QR code to empty string ("")
+                    su = qrCodeService.noQrCode(su);
+                }
                 return new ResponseEntity<>(su, HttpStatus.OK);
             }
         } else {
@@ -172,20 +193,18 @@ public class UrlShortenerController {
      * @param hash to obtain shortUrl QR code.
      * @return 200 and QR code in bytes iff shortUrl exists.
      * 404 iff shortUrl doesn't exists.
-     * @throws IOException iff ImageIO.write from QR code image to byteOutputStream fails.
+     * @throws IOException iff converting qr code image to byte array fails
      */
     @GetMapping(value = "/qr/{hash}", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
     public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash") String hash) throws IOException {
         ShortURL su = shortUrlService.findByKey(hash);
         log.debug(new Gson().toJson(su));
-        if (su != null) {
+        if (su != null && !su.getQrCode().isEmpty()) {
             // QR exits
-            BufferedImage bufferedImage = ImageIO.read(new File("qr/" + hash + ".png"));
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
-            return new ResponseEntity<>(byteArrayOutputStream.toByteArray(), HttpStatus.OK);
+            return new ResponseEntity<>(qrCodeService.getQrByteArray(hash), HttpStatus.OK);
         } else {
+            // QR not exists
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
     }

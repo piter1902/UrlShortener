@@ -44,7 +44,6 @@ public class ShortURLBuilder {
 
     ShortURLBuilder target(String url) {
         target = url;
-        //noinspection UnstableApiUsage
         hash = HashCalculator.calculateHash(url);
         return this;
     }
@@ -86,6 +85,11 @@ public class ShortURLBuilder {
 
     ShortURLBuilder uri(Function<String, URI> extractor) {
         this.uri = extractor.apply(hash);
+        return this;
+    }
+
+    ShortURLBuilder emptyQrPath() {
+        this.qrCode = "";
         return this;
     }
 }

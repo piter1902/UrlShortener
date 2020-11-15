@@ -10,6 +10,7 @@ import urlshortener.domain.ShortURL;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -78,5 +79,30 @@ public class QRCodeService {
             e.printStackTrace();
         }
         return qrCode;
+    }
+
+    /**
+     * Returns [su] object with qrCode field value equals to empty string ("")
+     *
+     * @param su object to modify
+     * @return su object without qrcode
+     */
+    public ShortURL noQrCode(ShortURL su) {
+        su.setQrCode("");
+        return su;
+    }
+
+    /**
+     * Returns byte array containing qr code image.
+     *
+     * @param hash to obtain qr code
+     * @return qr image byte array
+     * @throws IOException iff ImageIO.write from QR code image to byteOutputStream fails.
+     */
+    public byte[] getQrByteArray(String hash) throws IOException {
+        BufferedImage bufferedImage = ImageIO.read(new File("qr/" + hash + ".png"));
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+        return byteArrayOutputStream.toByteArray();
     }
 }

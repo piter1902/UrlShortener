@@ -62,6 +62,7 @@ public class ShortURLService {
             .treatAsSafe()
             .ip(ip)
             .unknownCountry()
+            .emptyQrPath()
             .build();
   }
 
@@ -79,7 +80,7 @@ public class ShortURLService {
   }
 
   /**
-   * Method that saves QR code path
+   * Method that saves QR code path. [su] object has to have QrCode not empty
    *
    * @param su to store changes
    * @return [su] object
@@ -100,7 +101,10 @@ public class ShortURLService {
   public ShortURL markAs(ShortURL su, boolean mark) {
 //    return shortURLRepository.mark(su, mark);
     su.setSafe(mark);
-    return shortURLRepo.save(separateQrPath(su));
+    if (!su.getQrCode().isEmpty()) {
+      separateQrPath(su);
+    }
+    return shortURLRepo.save(su);
   }
 
   private ShortURL separateQrPath(ShortURL su) {

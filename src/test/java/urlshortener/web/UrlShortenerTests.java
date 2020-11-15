@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import urlshortener.domain.ShortURL;
 import urlshortener.service.ClickService;
+import urlshortener.service.QRCodeService;
 import urlshortener.service.ShortURLService;
 
 import java.net.URI;
@@ -39,6 +40,9 @@ public class UrlShortenerTests {
 
     @InjectMocks
     private UrlShortenerController urlShortener;
+
+    @Mock
+    private QRCodeService qrCodeService;
 
     @Before
     public void setup() {
@@ -88,6 +92,14 @@ public class UrlShortenerTests {
                 }
         );
 
+        when(qrCodeService.updateQrURI(any(ShortURL.class))).then(
+                (Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSafe(true);
+                    return su;
+                }
+        );
+
         mockMvc.perform(post("/link").param("url", "http://example.org/"))
                 .andDo(print())
                 .andExpect(redirectedUrl("http://localhost/16a3e3e5"))
@@ -103,11 +115,21 @@ public class UrlShortenerTests {
         configureSave("http://sponsor.com/");
         configureCreate("http://sponsor.com");
 
-        when(shortUrlService.saveQR(any())).then(
+        when(shortUrlService.saveQrPath(any())).then(
                 (Answer<ShortURL>) invocation -> new ShortURL()
         );
 
         when(shortUrlService.markAs(any(), eq(true))).then(
+                (Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSponsor("http://sponsor.com/");
+                    su.setSafe(true);
+                    return su;
+                }
+        );
+
+        when(qrCodeService.getQRCode(any(ShortURL.class))).thenReturn("");
+        when(qrCodeService.updateQrURI(any(ShortURL.class))).then(
                 (Answer<ShortURL>) invocation -> {
                     ShortURL su = exampleOrgUrl();
                     su.setSponsor("http://sponsor.com/");

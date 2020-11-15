@@ -84,7 +84,7 @@ public class ShortURLService {
    * @param su to store changes
    * @return [su] object
    */
-  public ShortURL saveQR(ShortURL su) {
+  public ShortURL saveQrPath(ShortURL su) {
     /*shortURLRepo.update(su);
     return su;*/
     return shortURLRepo.save(separateQrPath(su));

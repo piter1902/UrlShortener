@@ -1,5 +1,6 @@
 package urlshortener.domain;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
@@ -9,19 +10,38 @@ import java.net.URI;
 public class ShortURL /*implements Serializable*/ {
 
     @Id
+    @Schema(name = "Hash", description = "Hash of shortened URL", required = true, example = "eab67425")
     private String hash;
+
+    @Schema(name = "Target URL", description = "Target URL", required = true, example = "http://example.org/")
     private String target;
+
+    @Schema(name = "Shortened URL", description = "Generated shortened URL", required = true)
     private URI uri;
+
+    @Schema(name = "Sponsor", description = "Sponsor of shortened URL", required = true, example = "http://sponsor.com/")
     private String sponsor;
-    //    @JsonSerialize(using = DateSerializer.class)
-//    @JsonDeserialize(using = DateDeserializers.DateDeserializer.class)
+
+    @Schema(name = "Creation date", description = "Creation date in format yyyy-MM-dd", required = true, example = "2020-11-17")
     private String created;
+
+    @Schema(name = "Owner", description = "Creator's UUID of shortened URL", required = true, example = "a676a4e5-c574-4699-9697-946d08217ec1")
     private String owner;
+
+    @Schema(name = "Redirection mode", description = "Redirection mode. Always 307", required = true, example = "307", defaultValue = "307")
     private Integer mode;
+
+    @Schema(name = "Safeness", description = "Target URL is reachable", required = true, example = "true", allowableValues = {"true", "false"})
     private Boolean safe;
+
+    @Schema(name = "IP", description = "Request IP", required = true, example = "192.168.0.158")
     private String ip;
+
+    @Schema(name = "Country", description = "Creator's country. Not in use.", required = true, defaultValue = "null")
     private String country;
+
     // QR code
+    @Schema(name = "QR Code", description = "QR Code URL", required = true)
     private String qrCode;
 
     public ShortURL(String hash, String target, URI uri, String sponsor,

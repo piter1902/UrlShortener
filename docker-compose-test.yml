@@ -7,7 +7,7 @@ services:
   #      - 8080:8080
 
   rabbitmq:
-    image: rabbitmq:3.8.9-alpine
+    image: rabbitmq:3.8.9-management-alpine
     container_name: rabbitmq_urlshortener
     environment:
       RABBITMQ_DEFAULT_USER: guest

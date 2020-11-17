@@ -7,17 +7,18 @@ services:
   #      - 8080:8080
 
   rabbitmq:
-    image: rabbitmq:3.8.9-alpine
+    image: rabbitmq:3.8.9-management-alpine
     container_name: rabbitmq_urlshortener
     environment:
       RABBITMQ_DEFAULT_USER: user
       RABBITMQ_DEFAULT_PASS: password
     ports:
       - 5672:5672
+      - 15672:15672
 
   redis:
     image: redis:latest
     container_name: redis_urlshortener
     command: redis-server --requirepass mypass # Change this to config file
     ports:
-      - "6379:6379"
+      - 6379:6379

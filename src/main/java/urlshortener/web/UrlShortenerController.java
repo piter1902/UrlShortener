@@ -1,6 +1,14 @@
 package urlshortener.web;
 
 import com.google.gson.Gson;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +39,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @RestController
+// OpenApi documentation source: https://www.dariawan.com/tutorials/spring/documenting-spring-boot-rest-api-springdoc-openapi-3/
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Short URL API",
+                description = "REST API to short URLs",
+                version = "1.0"
+        )
+)
 public class UrlShortenerController {
 
     private static final Logger log = LoggerFactory.getLogger(UrlShortenerController.class);
@@ -69,6 +85,21 @@ public class UrlShortenerController {
      * 404 iff shortUrl(id) not exists.
      */
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
+    @Operation(method = "GET", description = "Redirects from shortened URL to target URL")
+    @Parameter(name = "id", description = "ID of to obtain target URL", required = true, example = "eab67425")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "307", description = "Redirecting to target URL. OK."
+                    ),
+                    @ApiResponse(
+                            responseCode = "400", description = "Destination URL unreachable. ERROR."
+                    ),
+                    @ApiResponse(
+                            responseCode = "404", description = "ID not found. ERROR."
+                    )
+            }
+    )
     public ResponseEntity<?> redirectTo(@PathVariable String id,
                                         HttpServletRequest request) {
 
@@ -96,6 +127,23 @@ public class UrlShortenerController {
      * 400 iff url isn't valid (UrlValidator class)
      */
     @RequestMapping(value = "/link", method = RequestMethod.POST)
+    @Operation(method = "POST", description = "Creates a shortened URL from URL. It can also generate QR code for " +
+            "shortened URL.")
+    @Parameters(
+            value = {
+                    @Parameter(name = "url", description = "URL to short", required = true, example = "http://example.org"),
+                    @Parameter(name = "sponsor", description = "Sponsor of shortened URL"),
+                    @Parameter(name = "qrcode", description = "Boolean that marks if qr code will be generated")
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "URL was successfully created. OK."),
+                    @ApiResponse(responseCode = "200", description = "URL already exists. OK."),
+                    @ApiResponse(responseCode = "400", description = "Provided URL isn't following scheme http:// or " +
+                            "https://. ERROR.")
+            }
+    )
     public ResponseEntity<ShortURL> shortener(@RequestParam("url") String url,
                                               @RequestParam(value = "sponsor", required = false)
                                                       String sponsor,
@@ -197,6 +245,18 @@ public class UrlShortenerController {
      */
     @GetMapping(value = "/qr/{hash}", produces = MediaType.IMAGE_PNG_VALUE)
     @ResponseBody
+    @Operation(method = "GET", description = "Returns QR code image given hash of shortened URL")
+    @Parameter(name = "hash", description = "Hash of the shortened URL", required = true, example = "eab67425")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "QR code is generated for hash provided. OK.",
+                            content = @Content(mediaType = "image/png")
+                    ),
+                    @ApiResponse(responseCode = "404", description = "QR code not exists for hash. ERROR.")
+            }
+    )
     public ResponseEntity<byte[]> getQRCode(@PathVariable(name = "hash") String hash) throws IOException {
         ShortURL su = shortUrlService.findByKey(hash);
         log.debug(new Gson().toJson(su));
@@ -241,6 +301,7 @@ public class UrlShortenerController {
      * @return created CSV file name
      */
     @PostMapping(value = "/uploadCSV")
+    // TODO: Document with OpenAPI 3
     public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,
                                             @RequestParam(value = "sponsor", required = false)
                                                     String sponsor,
@@ -306,6 +367,7 @@ public class UrlShortenerController {
      * @throws IOException Throws an exception if FileInputStream doesn't find the CSV file
      */
     @RequestMapping(path = "/files/{filename}", method = RequestMethod.GET)
+    // TODO: Document with OpenAPI 3
     public ResponseEntity<Resource> downloadCSV(@PathVariable(name = "filename") String filename) throws IOException {
         System.err.println("Comenzamos la descarga de " + filename);
         InputStreamResource resource = new InputStreamResource(new FileInputStream("files/" + filename));

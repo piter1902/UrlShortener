@@ -22,6 +22,9 @@ dependencies {
     //implementation 'org.springframework.boot:spring-boot-starter-data-jdbc' // (not in use)
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    // SpringDoc
+    implementation 'org.springdoc:springdoc-openapi-ui:1.5.0'
+
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 

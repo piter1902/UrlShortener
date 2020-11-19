@@ -3,7 +3,6 @@ package urlshortener.integration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,8 +64,6 @@ public class SystemTests {
         assertThat(entity.getBody(), containsString("body"));
     }
 
-    // TODO: Check why this test is failing in Travis-CI
-    @Ignore
     @Test
     public void testCreateLink() throws Exception {
         ResponseEntity<String> entity = postLink("http://example.org/");

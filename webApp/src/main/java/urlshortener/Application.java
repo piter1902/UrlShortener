@@ -7,10 +7,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import urlshortener.messagingrabbitmq.Sender;
+import urlshortener.rabbitAdapters.Sender;
 
 @SpringBootApplication
-public class Application extends SpringBootServletInitializer implements CommandLineRunner {
+public class Application extends SpringBootServletInitializer /*implements CommandLineRunner*/ {
 
     @Autowired
     RabbitTemplate rabbitTemplate;
@@ -22,11 +22,11 @@ public class Application extends SpringBootServletInitializer implements Command
         SpringApplication.run(Application.class, args);
     }
 
-  @Override
-  public void run(String... args) {
-    sender.send("mensaje desde application");
-//    rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY, MESSAGE);
-  }
+//    @Override
+//    public void run(String... args) {
+////    sender.send("mensaje desde application");
+////    rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY, MESSAGE);
+//    }
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

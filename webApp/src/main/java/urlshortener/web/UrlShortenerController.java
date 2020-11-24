@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
+import urlshortener.rabbitAdapters.Sender;
 import urlshortener.service.ClickService;
 import urlshortener.service.HashCalculator;
 import urlshortener.service.QRCodeService;
@@ -31,10 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -58,8 +57,7 @@ public class UrlShortenerController {
 
     private final QRCodeService qrCodeService;
 
-    /*@Autowired
-    Sender sender;*/
+    private Sender sender;
 
     /**
      * Public constructor
@@ -67,12 +65,14 @@ public class UrlShortenerController {
      * @param shortUrlService short url service
      * @param clickService    click service
      * @param qrCodeService   qrcode service
+     * @param sender          sender adapter to rabbitmq
      */
     public UrlShortenerController(ShortURLService shortUrlService, ClickService clickService,
-                                  QRCodeService qrCodeService) {
+                                  QRCodeService qrCodeService, Sender sender) {
         this.shortUrlService = shortUrlService;
         this.clickService = clickService;
         this.qrCodeService = qrCodeService;
+        this.sender = sender;
     }
 
     /**
@@ -165,7 +165,7 @@ public class UrlShortenerController {
                     shortUrlService.saveQrPath(su);
                 }
                 // validate url
-                su = validateURL(url, su);
+                validateURL(su);
                 System.err.println("En la creación" + new Gson().toJson(su));
                 // Returns shortURL
                 HttpHeaders h = new HttpHeaders();
@@ -205,34 +205,12 @@ public class UrlShortenerController {
     }
 
     /**
-     * Method that checks if url is safe
+     * Method that checks if url is safe (asynchronous)
      *
-     * @param url to check safety
-     * @param su  shortUrl object to modify (if needed) safe.
-     * @return [su] object with safe field updated.
-     * [su.safe] will be true if HTTP GET over url returns 200.
-     * Else will be false.
+     * @param su shortUrl object to check safety.
      */
-    private ShortURL validateURL(String url, ShortURL su) {
-        // TODO: Sends the shortURL to a message queue to validate
-        // Source: https://www.baeldung.com/java-http-request
-        try {
-            URL url_check = new URL(url);
-            HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
-            con.setRequestMethod("GET");
-            if (con.getResponseCode() == 200) {
-                // Request returns 200. Url is valid.
-                su = shortUrlService.markAs(su, true);
-                System.out.format("URL %s valida\n", su.getTarget());
-            }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            //e.printStackTrace();
-            log.debug("LA URL NO ES VALIDA");
-            su = shortUrlService.markAs(su, false);
-        }
-        return su;
+    private void validateURL(ShortURL su) {
+        sender.send(su);
     }
 
     /**
@@ -328,7 +306,7 @@ public class UrlShortenerController {
                             // ShortUrl DOES NOT exists. Saving it.
                             su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
                             // Check if url is safe
-                            su = validateURL(url, su);
+                            validateURL(su);
                         } else {
                             // ShortUrl exists. Return it.
                             System.err.println("Existe. Devolviendo.");

@@ -1,27 +1,25 @@
-package workers.rabbitmq;
+package UrlShortenerWorkers.Config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import UrlShortenerWorkers.workers.Receiver;
 
 @SpringBootApplication
 @Configuration
 public class RabbitConfig {
 
-    public static final String EXCHANGE_NAME = "exchange_name";
+    public static final String EXCHANGE_NAME = "url-safeness-verificartor";
 
-    static final String queueName = "urlshortener";
+//    static final String queueName = "urlshortener";
 
     @Bean
     public Queue queue() {
-        return new Queue(queueName, false);
+        return new AnonymousQueue();
     }
 
     @Bean
@@ -36,10 +34,10 @@ public class RabbitConfig {
 
     @Bean
     SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
-                                             MessageListenerAdapter listenerAdapter) {
+                                             MessageListenerAdapter listenerAdapter, Queue queue) {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(queueName);
+        container.setQueueNames(queue.getName());
         container.setMessageListener(listenerAdapter);
         return container;
     }

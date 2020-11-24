@@ -1,7 +1,7 @@
 package urlshortener.web;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -9,6 +9,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import urlshortener.domain.ShortURL;
+import urlshortener.rabbitAdapters.Sender;
 import urlshortener.service.ClickService;
 import urlshortener.service.QRCodeService;
 import urlshortener.service.ShortURLService;
@@ -44,7 +45,10 @@ public class UrlShortenerTests {
     @Mock
     private QRCodeService qrCodeService;
 
-    @Before
+    @Mock
+    private Sender sender;
+
+    @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
         this.mockMvc = MockMvcBuilders.standaloneSetup(urlShortener).build();
@@ -130,6 +134,15 @@ public class UrlShortenerTests {
 
         when(qrCodeService.getQRCode(any(ShortURL.class))).thenReturn("");
         when(qrCodeService.updateQrURI(any(ShortURL.class))).then(
+                (Answer<ShortURL>) invocation -> {
+                    ShortURL su = exampleOrgUrl();
+                    su.setSponsor("http://sponsor.com/");
+                    su.setSafe(true);
+                    return su;
+                }
+        );
+
+        when(shortUrlService.save(any(), any(), any())).then(
                 (Answer<ShortURL>) invocation -> {
                     ShortURL su = exampleOrgUrl();
                     su.setSponsor("http://sponsor.com/");

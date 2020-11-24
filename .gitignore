@@ -22,7 +22,7 @@ out/
 webApp/qr/
 
 # Files directory
-files/
+webApp/files/
 
 .DS_Store
 

@@ -3,8 +3,13 @@ jdk: openjdk8
 
 # Services
 services:
-  - rabbitmq
+#  - rabbitmq
   - redis
+
+addons:
+  apt:
+    packages:
+      - rabbitmq-server
 
 before_script:
   # Create directories
@@ -12,6 +17,8 @@ before_script:
   - sudo service redis-server stop
   - sudo redis-server --port 6379 --requirepass mypass >/dev/null 2>&1 &
   - sleep 10 # Sleep 10 seconds
+
+
 
 #after_script:
 #  # Show error

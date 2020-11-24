@@ -1,4 +1,4 @@
-package urlshortener.messagingrabbitmq;
+package workers.rabbitmq;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;

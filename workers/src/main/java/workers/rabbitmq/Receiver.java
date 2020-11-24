@@ -1,4 +1,4 @@
-package urlshortener.messagingrabbitmq;
+package workers.rabbitmq;
 
 public class Receiver {
 

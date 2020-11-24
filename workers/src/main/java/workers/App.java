@@ -7,7 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import urlshortener.messagingrabbitmq.Sender;
+import workers.rabbitmq.Sender;
 
 @SpringBootApplication
 public class App extends SpringBootServletInitializer implements CommandLineRunner {

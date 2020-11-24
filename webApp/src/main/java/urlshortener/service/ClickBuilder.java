@@ -6,57 +6,57 @@ import java.sql.Date;
 
 public class ClickBuilder {
 
-  private String hash;
-  private String created;
-  private String referrer;
-  private String browser;
-  private String platform;
-  private String ip;
-  private String country;
+    private String hash;
+    private String created;
+    private String referrer;
+    private String browser;
+    private String platform;
+    private String ip;
+    private String country;
 
-  static ClickBuilder newInstance() {
-    return new ClickBuilder();
-  }
+    static ClickBuilder newInstance() {
+        return new ClickBuilder();
+    }
 
-  Click build() {
-    return new Click(null, hash, created, referrer,
-        browser, platform, ip, country);
-  }
+    Click build() {
+        return new Click(null, hash, created, referrer,
+                browser, platform, ip, country);
+    }
 
-  ClickBuilder hash(String hash) {
-    this.hash = hash;
-    return this;
-  }
+    ClickBuilder hash(String hash) {
+        this.hash = hash;
+        return this;
+    }
 
-  ClickBuilder createdNow() {
-    this.created = new Date(System.currentTimeMillis()).toString();
-    return this;
-  }
+    ClickBuilder createdNow() {
+        this.created = new Date(System.currentTimeMillis()).toString();
+        return this;
+    }
 
-  ClickBuilder noReferrer() {
-    this.referrer = null;
-    return this;
-  }
+    ClickBuilder noReferrer() {
+        this.referrer = null;
+        return this;
+    }
 
-  ClickBuilder unknownBrowser() {
-    this.browser = null;
-    return this;
-  }
+    ClickBuilder unknownBrowser() {
+        this.browser = null;
+        return this;
+    }
 
-  ClickBuilder unknownPlatform() {
-    this.platform = null;
-    return this;
-  }
+    ClickBuilder unknownPlatform() {
+        this.platform = null;
+        return this;
+    }
 
 
-  ClickBuilder ip(String ip) {
-    this.ip = ip;
-    return this;
-  }
+    ClickBuilder ip(String ip) {
+        this.ip = ip;
+        return this;
+    }
 
-  ClickBuilder withoutCountry() {
-    this.country = null;
-    return this;
-  }
+    ClickBuilder withoutCountry() {
+        this.country = null;
+        return this;
+    }
 
 }

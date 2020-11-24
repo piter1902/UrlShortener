@@ -32,60 +32,60 @@ public class Click {
         return id;
     }
 
-    public String getHash() {
-        return hash;
-    }
-
-    public String getCreated() {
-        return created;
-    }
-
-    public String getReferrer() {
-        return referrer;
-    }
-
-    public String getBrowser() {
-        return browser;
-    }
-
-    public String getPlatform() {
-        return platform;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getHash() {
+        return hash;
     }
 
     public void setHash(String hash) {
         this.hash = hash;
     }
 
+    public String getCreated() {
+        return created;
+    }
+
     public void setCreated(String created) {
         this.created = created;
+    }
+
+    public String getReferrer() {
+        return referrer;
     }
 
     public void setReferrer(String referrer) {
         this.referrer = referrer;
     }
 
+    public String getBrowser() {
+        return browser;
+    }
+
     public void setBrowser(String browser) {
         this.browser = browser;
+    }
+
+    public String getPlatform() {
+        return platform;
     }
 
     public void setPlatform(String platform) {
         this.platform = platform;
     }
 
+    public String getIp() {
+        return ip;
+    }
+
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public String getCountry() {
+        return country;
     }
 
     public void setCountry(String country) {

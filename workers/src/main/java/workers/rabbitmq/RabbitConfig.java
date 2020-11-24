@@ -1,23 +1,21 @@
 package workers.rabbitmq;
 
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.context.annotation.Bean;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
 @Configuration
 public class RabbitConfig {
 
     public static final String EXCHANGE_NAME = "exchange_name";
-    public static final String ROUTING_KEY = "routing_key";
 
     static final String queueName = "urlshortener";
 
@@ -27,13 +25,13 @@ public class RabbitConfig {
     }
 
     @Bean
-    TopicExchange exchange() {
-        return new TopicExchange(EXCHANGE_NAME);
+    DirectExchange exchange() {
+        return new DirectExchange(EXCHANGE_NAME);
     }
 
     @Bean
-    Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(ROUTING_KEY);
+    Binding binding(Queue queue, DirectExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with("");
     }
 
     @Bean
@@ -47,7 +45,7 @@ public class RabbitConfig {
     }
 
     @Bean
-    Receiver receiver(){
+    Receiver receiver() {
         return new Receiver();
     }
 
@@ -55,8 +53,5 @@ public class RabbitConfig {
     MessageListenerAdapter listenerAdapter(Receiver receiver) {
         return new MessageListenerAdapter(receiver, Receiver.RECEIVE_METHOD_NAME);
     }
-
-    @Bean
-    Sender sender(){ return new Sender(); }
 
 }

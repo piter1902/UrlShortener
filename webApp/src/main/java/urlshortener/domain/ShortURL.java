@@ -67,32 +67,64 @@ public class ShortURL /*implements Serializable*/ {
         return hash;
     }
 
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
+
     public String getTarget() {
         return target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
     }
 
     public URI getUri() {
         return uri;
     }
 
+    public void setUri(java.net.URI uri) {
+        this.uri = uri;
+    }
+
     public String getCreated() {
         return created;
+    }
+
+    public void setCreated(String created) {
+        this.created = created;
     }
 
     public String getOwner() {
         return owner;
     }
 
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
     public Integer getMode() {
         return mode;
+    }
+
+    public void setMode(Integer mode) {
+        this.mode = mode;
     }
 
     public String getSponsor() {
         return sponsor;
     }
 
+    public void setSponsor(String sponsor) {
+        this.sponsor = sponsor;
+    }
+
     public Boolean getSafe() {
         return safe;
+    }
+
+    public void setSafe(Boolean safe) {
+        this.safe = safe;
     }
 
     public String getIP() {
@@ -103,44 +135,12 @@ public class ShortURL /*implements Serializable*/ {
         return country;
     }
 
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public void setTarget(String target) {
-        this.target = target;
-    }
-
-    public void setUri(java.net.URI uri) {
-        this.uri = uri;
-    }
-
-    public void setSponsor(String sponsor) {
-        this.sponsor = sponsor;
-    }
-
-    public void setCreated(String created) {
-        this.created = created;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public void setMode(Integer mode) {
-        this.mode = mode;
-    }
-
-    public void setSafe(Boolean safe) {
-        this.safe = safe;
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public void setIp(String ip) {
         this.ip = ip;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
     }
 
     public String getQrCode() {

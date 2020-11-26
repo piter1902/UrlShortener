@@ -248,28 +248,6 @@ public class UrlShortenerController {
     }
 
     /**
-     * Method that returns ip address from a request
-     *
-     * @param request object to extract ip address
-     * @return ip address from [request] object
-     */
-    private String extractIP(HttpServletRequest request) {
-        return request.getRemoteAddr();
-    }
-
-    /**
-     * Method that returns ResponseEntity with Location header and status code updated.
-     *
-     * @param l shortUrl object to create response
-     * @return ResponseEntity ResponseEntity with Location header and status code updated.
-     */
-    private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
-        HttpHeaders h = new HttpHeaders();
-        h.setLocation(URI.create(l.getTarget()));
-        return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
-    }
-
-    /**
      * Method that read a CSV file "file" which contains URLs and create a
      * new CSV file that contains those original URLs shorted.
      *
@@ -279,13 +257,31 @@ public class UrlShortenerController {
      * @return created CSV file name
      */
     @PostMapping(value = "/uploadCSV")
-    // TODO: Document with OpenAPI 3
+    @ResponseBody
+    @Operation(method = "POST", description = "Reads a CSV file which contains URLs and create a new CSV file " +
+            "that contains those original URLs shorted")
+    @Parameters(
+            value = {
+                    @Parameter(name = "file", description = "CSV File which contains URLs separated with", required = true, example = "urls.csv"),
+                    @Parameter(name = "sponsor", description = "Sponsor of shortened URL"),
+            }
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Original file is correct and new CSV file is correctly generated",
+                            content = @Content(mediaType = "file/csv")
+                    ),
+                    @ApiResponse(responseCode = "400", description = "Invalid file format")
+            }
+    )
     public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,
                                             @RequestParam(value = "sponsor", required = false)
                                                     String sponsor,
                                             HttpServletRequest request) {
         try {
-            // Contenido del fichero
+            // File content
             String content = new String(file.getBytes(), StandardCharsets.UTF_8);
             String[] lines = content.replaceAll("\r\n", "\n").split("\n");
             String filename = UUID.randomUUID() + ".csv";
@@ -338,6 +334,28 @@ public class UrlShortenerController {
     }
 
     /**
+     * Method that returns ip address from a request
+     *
+     * @param request object to extract ip address
+     * @return ip address from [request] object
+     */
+    private String extractIP(HttpServletRequest request) {
+        return request.getRemoteAddr();
+    }
+
+    /**
+     * Method that returns ResponseEntity with Location header and status code updated.
+     *
+     * @param l shortUrl object to create response
+     * @return ResponseEntity ResponseEntity with Location header and status code updated.
+     */
+    private ResponseEntity<?> createSuccessfulRedirectToResponse(ShortURL l) {
+        HttpHeaders h = new HttpHeaders();
+        h.setLocation(URI.create(l.getTarget()));
+        return new ResponseEntity<>(h, HttpStatus.valueOf(l.getMode()));
+    }
+
+    /**
      * Endpoint that returns a CSV file that contains shorted URLs
      *
      * @param filename CSV file name
@@ -345,18 +363,36 @@ public class UrlShortenerController {
      * @throws IOException Throws an exception if FileInputStream doesn't find the CSV file
      */
     @RequestMapping(path = "/files/{filename}", method = RequestMethod.GET)
-    // TODO: Document with OpenAPI 3
+    @ResponseBody
+    @Operation(method = "GET", description = "Returns a CSV file that contains shorted URLs")
+    @Parameter(name = "filename", description = "Name of the CSV file that contains shorted URLs (created with /uploadCSV) ", required = true, example = "<UID>.csv")
+
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "CSV file exists. Returns its content.",
+                            content = @Content(mediaType = "file/csv")
+                    ),
+                    @ApiResponse(responseCode = "404", description = "File doesn't exist on the server")
+            }
+    )
     public ResponseEntity<Resource> downloadCSV(@PathVariable(name = "filename") String filename) throws IOException {
         System.err.println("Comenzamos la descarga de " + filename);
-        InputStreamResource resource = new InputStreamResource(new FileInputStream("files/" + filename));
-        HttpHeaders responseHeaders = new HttpHeaders();
-        responseHeaders.add("content-disposition", "attachment; filename=" + filename);
-        responseHeaders.add("Content-Type", "text/csv");
+        try {
+            InputStreamResource resource = new InputStreamResource(new FileInputStream("files/" + filename));
+            HttpHeaders responseHeaders = new HttpHeaders();
+            responseHeaders.add("content-disposition", "attachment; filename=" + filename);
+            responseHeaders.add("Content-Type", "text/csv");
 
-        return ResponseEntity.ok()
-                .headers(responseHeaders)
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(resource);
+            return ResponseEntity.ok()
+                    .headers(responseHeaders)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(resource);
+
+        } catch (IOException e) {
+            return new ResponseEntity<Resource>((Resource) null, HttpStatus.NOT_FOUND);
+        }
     }
 
 }

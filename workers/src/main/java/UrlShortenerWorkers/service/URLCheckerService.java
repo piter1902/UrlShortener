@@ -12,24 +12,28 @@ import java.net.URL;
 @Service
 public class URLCheckerService {
 
+    // HTTP Timeout (in milliseconds)
+    private static final int HTTP_TIMEOUT = 2000;
     @Autowired
     private ShortURLService shortUrlService;
 
     /**
      * Method that checks if url is safe and notifies to service associated to shorted urls.
      *
-     * @param su  shortUrl object to modify (if needed) safe.
+     * @param su shortUrl object to modify (if needed) safe.
      * @return [su] object with safe field updated.
      * [su.safe] will be true if HTTP GET over url returns 200.
      * Else will be false.
+     * @throws MalformedURLException if su.getTarget() is not a valid url (scheme://host:port/)
      */
-    public ShortURL validateURL(ShortURL su) {
-        // TODO: Update this to add timeouts
+    public ShortURL validateURL(ShortURL su) throws MalformedURLException {
         // Source: https://www.baeldung.com/java-http-request
         String url = su.getTarget();
         try {
             URL url_check = new URL(url);
             HttpURLConnection con = (HttpURLConnection) url_check.openConnection();
+            con.setConnectTimeout(HTTP_TIMEOUT);
+            con.setReadTimeout(HTTP_TIMEOUT);
             con.setRequestMethod("GET");
             if (con.getResponseCode() == 200) {
                 // Request returns 200. Url is valid.
@@ -37,7 +41,7 @@ public class URLCheckerService {
                 System.out.format("URL %s valida\n", su.getTarget());
             }
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            throw e;
         } catch (IOException e) {
             //e.printStackTrace();
 //            log.debug("LA URL NO ES VALIDA");

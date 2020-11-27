@@ -1,5 +1,9 @@
 package urlshortener.web;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +30,13 @@ public class UrlShortenerStatus {
      * @return 200 and ShortUrlStatus object containing ShortUrl[hash]'s status iff ShortUrl[hash] exists.
      * 404 and null iff ShortUrl[hash] doesn't exist.
      */
+    @Operation(method = "GET", description = "Returns status given a Shortened URL. Status is composed by " +
+            "its hash (identifier), safe flag (if it's reachable, it'll true) and its URI")
+    @Parameter(name = "hash", description = "Hash to obtain Shortened URL status", required = true, example = "eab67425")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "There is a Shortened URL that has id = hash. Return Status."),
+            @ApiResponse(responseCode = "404", description = "There isn't a Shortened URL that has id = hash")
+    })
     @GetMapping(value = "/status/{hash}")
     public ResponseEntity<ShortUrlStatus> status(@PathVariable(name = "hash") String hash, HttpServletRequest request) {
         ShortURL su = shortURLService.findByKey(hash);

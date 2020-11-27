@@ -9,13 +9,11 @@ import java.net.MalformedURLException;
 
 public class Receiver {
 
+    public static final String RECEIVE_METHOD_NAME = "receiveMessage";
     @Autowired
     private Gson gson;
-
     @Autowired
     private URLCheckerService urlCheckerService;
-
-    public static final String RECEIVE_METHOD_NAME = "receiveMessage";
 
     public void receiveMessage(String toVerify) {
         System.err.println("[Receiver] ha recibido el mensaje \"" + toVerify + '"');

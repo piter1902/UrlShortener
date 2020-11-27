@@ -3,7 +3,6 @@ package urlshortener.rabbitAdapters;
 import com.google.gson.Gson;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import urlshortener.config.RabbitConfig;
 import urlshortener.domain.ShortURL;
 
 public class Sender {

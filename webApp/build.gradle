@@ -50,6 +50,9 @@ dependencies {
 
     // Google GSON for JSON serialization
     implementation 'com.google.code.gson:gson:2.8.6'
+
+    //CSV parser
+    implementation 'org.apache.commons:commons-csv:1.8'
 }
 
 test {

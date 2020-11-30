@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -28,13 +29,11 @@ import urlshortener.service.QRCodeService;
 import urlshortener.service.ShortURLService;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.UUID;
+
+import urlshortener.service.CSVHelper;
 
 @RestController
 // OpenApi documentation source: https://www.dariawan.com/tutorials/spring/documenting-spring-boot-rest-api-springdoc-openapi-3/
@@ -49,7 +48,7 @@ public class UrlShortenerController {
 
     private static final Logger log = LoggerFactory.getLogger(UrlShortenerController.class);
 
-    private static final String CSV_SEPARATOR = ";";
+//    private static final String CSV_SEPARATOR = ";";
     private final ShortURLService shortUrlService;
 
     private final ClickService clickService;
@@ -57,6 +56,9 @@ public class UrlShortenerController {
     private final QRCodeService qrCodeService;
 
     private Sender sender;
+
+    @Autowired
+    private CSVHelper csvHelper;
 
     /**
      * Public constructor
@@ -251,7 +253,6 @@ public class UrlShortenerController {
      * new CSV file that contains those original URLs shorted.
      *
      * @param file    CSV File which contains URLs separated with ;
-     * @param sponsor sponsor
      * @param request request
      * @return created CSV file name
      */
@@ -259,76 +260,34 @@ public class UrlShortenerController {
     @ResponseBody
     @Operation(method = "POST", description = "Reads a CSV file which contains URLs and create a new CSV file " +
             "that contains those original URLs shorted")
-    @Parameters(
-            value = {
-                    @Parameter(name = "file", description = "CSV File which contains URLs separated with", required = true, example = "urls.csv"),
-                    @Parameter(name = "sponsor", description = "Sponsor of shortened URL"),
-            }
-    )
+    @Parameter(name = "file", description = "CSV File which contains URLs separated with", required = true, example = "urls.csv")
+
     @ApiResponses(
             value = {
                     @ApiResponse(
-                            responseCode = "200",
-                            description = "Original file is correct and new CSV file is correctly generated",
+                            responseCode = "201",
+                            description = "Original file is correct and new CSV file is correctly created",
                             content = @Content(mediaType = "file/csv")
                     ),
                     @ApiResponse(responseCode = "400", description = "Invalid file format")
             }
     )
-    public ResponseEntity<byte[]> uploadCsv(@RequestParam(name = "file") MultipartFile file,
-                                            @RequestParam(value = "sponsor", required = false)
-                                                    String sponsor,
+    public ResponseEntity<String> uploadCsv(@RequestParam(name = "file") MultipartFile file,
                                             HttpServletRequest request) {
-        try {
-            // File content
-            String content = new String(file.getBytes(), StandardCharsets.UTF_8);
-            String[] lines = content.replaceAll("\r\n", "\n").split("\n");
-            String filename = UUID.randomUUID() + ".csv";
-            //CSV to return
-            File f = new File("files/" + filename);
-            PrintWriter pw = new PrintWriter(f);
-            for (String s : lines) {
-                String[] fields = s.split(CSV_SEPARATOR);
-                for (String url : fields) {
-                    UrlValidator urlValidator = new UrlValidator(new String[]{"http",
-                            "https"});
-                    // Check if the URL is valid
-                    if (urlValidator.isValid(url)) {
-                        ShortURL su = shortUrlService.create(url, sponsor, request.getRemoteAddr());
-                        su = shortUrlService.findByKey(su.getHash());
-                        if (su == null) {
-                            System.err.println("No existe. Creando.");
-                            // ShortUrl DOES NOT exists. Saving it.
-                            su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
-                            // Check if url is safe
-                            validateURL(su);
-                        } else {
-                            // ShortUrl exists. Return it.
-                            System.err.println("Existe. Devolviendo.");
-                            su = shortUrlService.save(url, sponsor, request.getRemoteAddr());
-                        }
-                        // Write on the CSV file
-                        pw.print(su.getUri() + ";");
-                        System.err.println("Original URL: " + url);
-                        System.err.println("Shorted URL: " + su.getUri());
-                    } else {
-                        // Url NOT valid
-                        // Write "ERROR" on the CSV file
-                        pw.print("ERROR;");
-                        System.err.println("Invalid URL: " + url);
-                    }
-
-                }
-                pw.print('\n');
-                System.err.println("Full line: " + s);
+        if (csvHelper.hasCSVFormat(file)) {
+            try {
+                //CSV to return
+//            File f = new File("files\\" + filename);
+                String filename = csvHelper.save(file, request.getRemoteAddr());
+                // Return CSV file name and Http Status
+                return new ResponseEntity<>(filename, HttpStatus.CREATED);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);
             }
-            // Close output stream
-            pw.close();
-            // Return CSV file name and Http Status
-            return new ResponseEntity<>(filename.getBytes(), HttpStatus.OK);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Invalid file format!!".getBytes(), HttpStatus.BAD_REQUEST);
+        }else{
+            System.err.println("ERROR: format " + file.getContentType());
+            return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -381,12 +340,12 @@ public class UrlShortenerController {
         try {
             InputStreamResource resource = new InputStreamResource(new FileInputStream("files/" + filename));
             HttpHeaders responseHeaders = new HttpHeaders();
-            responseHeaders.add("content-disposition", "attachment; filename=" + filename);
-            responseHeaders.add("Content-Type", "text/csv");
+            responseHeaders.add("Content-disposition", "attachment; filename=" + filename);
+            responseHeaders.add("Content-Type", "application/csv");
 
             return ResponseEntity.ok()
                     .headers(responseHeaders)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(MediaType.parseMediaType("application/csv"))
                     .body(resource);
 
         } catch (IOException e) {

@@ -35,12 +35,20 @@ $(document).ready(
                 processData: false,
                 contentType: false,
                 cache: false,
-                success: function(res){
+                success: function(data){
                     console.log("RESULTADO:");
-                    console.log(res);
-                    window.open("/files/"+res)
-//                    var iframe = document.getElementById("downloadFrame");
-//                    iframe .src = "/uploadCSV";
+                    console.log(data);
+                    $.ajax({
+                        url: "/files/"+data,
+                        type:"GET",
+                        success: function(res){
+                            var blob = new Blob([res]);
+                            var link=document.createElement('a');
+                            link.href=window.URL.createObjectURL(blob);
+                            link.download="shorted_urls.csv";
+                            link.click();
+                        }
+                    });
                 },
                 error: function(err) {
                     console.error(err);

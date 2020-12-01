@@ -39,18 +39,6 @@ public class ShortURLService {
     }
 
     /**
-     * Method that saves QR code path. [su] object has to have QrCode not empty
-     *
-     * @param su to store changes
-     * @return [su] object
-     */
-    public ShortURL saveQrPath(ShortURL su) {
-    /*shortURLRepo.update(su);
-    return su;*/
-        return shortURLRepo.save(separateQrPath(su));
-    }
-
-    /**
      * Method that marks and stores shortUrl object with safeness = [mark]
      *
      * @param su   object to update
@@ -75,5 +63,16 @@ public class ShortURLService {
             // It's not a URI
         }
         return su;
+    }
+
+    /**
+     * Method that marks shortUrl object with validated = true
+     *
+     * @param su object to update
+     * @return [su] object with validated field updated
+     */
+    public ShortURL markAsValidated(ShortURL su) {
+        su.setValidated(true);
+        return shortURLRepo.save(su);
     }
 }

@@ -19,6 +19,8 @@ public class Receiver {
         System.err.println("[Receiver] ha recibido el mensaje \"" + toVerify + '"');
         try {
             ShortURL su = urlCheckerService.validateURL(gson.fromJson(toVerify, ShortURL.class));
+            // Update validated field status
+            su = urlCheckerService.markAsValidated(su);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }

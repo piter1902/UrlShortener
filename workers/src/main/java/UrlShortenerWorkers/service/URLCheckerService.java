@@ -49,4 +49,14 @@ public class URLCheckerService {
         }
         return su;
     }
+
+    /**
+     * Updates shortUrl to set that Destination URL has been validated.
+     *
+     * @param su to mark as validated
+     * @return [su] object marked as validated.
+     */
+    public ShortURL markAsValidated(ShortURL su) {
+        return shortUrlService.markAsValidated(su);
+    }
 }

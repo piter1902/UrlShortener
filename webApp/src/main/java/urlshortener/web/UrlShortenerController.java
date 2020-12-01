@@ -23,18 +23,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.domain.ShortURL;
 import urlshortener.rabbitAdapters.Sender;
-import urlshortener.service.ClickService;
-import urlshortener.service.HashCalculator;
-import urlshortener.service.QRCodeService;
-import urlshortener.service.ShortURLService;
+import urlshortener.service.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
-
-import urlshortener.service.CSVHelper;
 
 @RestController
 // OpenApi documentation source: https://www.dariawan.com/tutorials/spring/documenting-spring-boot-rest-api-springdoc-openapi-3/
@@ -49,7 +44,7 @@ public class UrlShortenerController {
 
     private static final Logger log = LoggerFactory.getLogger(UrlShortenerController.class);
 
-//    private static final String CSV_SEPARATOR = ";";
+    //    private static final String CSV_SEPARATOR = ";";
     private final ShortURLService shortUrlService;
 
     private final ClickService clickService;
@@ -83,7 +78,7 @@ public class UrlShortenerController {
      * @param id      of shortUrl (hash code)
      * @param request object
      * @return 307 and redirects to shortUrl(id).target iff shortUrl(id) exists and it's safe.
-     * 400 iff shortUrl(id) not exists and shortUrl(id) isn't safe.
+     * 400 iff shortUrl(id) not exists and shortUrl(id) isn't safe or shortUrl(id).validated is false.
      * 404 iff shortUrl(id) not exists.
      */
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
@@ -95,7 +90,7 @@ public class UrlShortenerController {
                             responseCode = "307", description = "Redirecting to target URL. OK."
                     ),
                     @ApiResponse(
-                            responseCode = "400", description = "Destination URL unreachable. ERROR."
+                            responseCode = "400", description = "Destination URL unreachable or it hasn't been validated yet. ERROR."
                     ),
                     @ApiResponse(
                             responseCode = "404", description = "ID not found. ERROR."
@@ -108,12 +103,15 @@ public class UrlShortenerController {
         //sender.send("Mensaje desde "+id);
 
         ShortURL l = shortUrlService.findByKey(id);
-        if (l != null && l.getSafe()) {
+        if (l != null && l.getValidated() && l.getSafe()) {
+            // 200
             clickService.saveClick(id, extractIP(request));
             return createSuccessfulRedirectToResponse(l);
-        } else if (l != null && !l.getSafe()) {
+        } else if (l != null && (!l.getSafe() || !l.getValidated())) {
+            // 400
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
+            // 404
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
@@ -286,7 +284,7 @@ public class UrlShortenerController {
                 e.printStackTrace();
                 return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);
             }
-        }else{
+        } else {
             System.err.println("ERROR: format " + file.getContentType());
             return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);
         }

@@ -118,4 +118,15 @@ public class ShortURLService {
         }
         return su;
     }
+
+    /**
+     * Method that marks shortUrl object with validated = true
+     *
+     * @param su object to update
+     * @return [su] object with validated field updated
+     */
+    public ShortURL markAsValidated(ShortURL su) {
+        su.setValidated(true);
+        return shortURLRepo.save(su);
+    }
 }

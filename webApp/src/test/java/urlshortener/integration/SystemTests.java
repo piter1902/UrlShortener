@@ -3,6 +3,7 @@ package urlshortener.integration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,9 +81,21 @@ public class SystemTests {
     }
 
     @Test
+    public void testRedirectionWithoutRabbit() throws Exception {
+        postLink("http://example.org/");
+        // Not waiting validation because there are no workers -> Error 400
+        ResponseEntity<String> entity = restTemplate.getForEntity("/16a3e3e5", String.class);
+        assertThat(entity.getStatusCode(), is(HttpStatus.BAD_REQUEST));
+        // No more checks. An error has ocurred (HTTP status code 400)
+//        assertThat(entity.getHeaders().getLocation(), is(new URI("http://example.org/")));
+    }
+
+    @Test(timeout = 2000)
+    @Ignore // TODO: Ignored till Workers can be launched for testing
     public void testRedirection() throws Exception {
         postLink("http://example.org/");
-
+        // Wait for workers validation
+        Thread.sleep(1000);
         ResponseEntity<String> entity = restTemplate.getForEntity("/16a3e3e5", String.class);
         assertThat(entity.getStatusCode(), is(HttpStatus.TEMPORARY_REDIRECT));
         assertThat(entity.getHeaders().getLocation(), is(new URI("http://example.org/")));

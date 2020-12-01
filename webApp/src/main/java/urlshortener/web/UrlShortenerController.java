@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
 import urlshortener.service.CSVHelper;
 
@@ -249,8 +250,7 @@ public class UrlShortenerController {
     }
 
     /**
-     * Method that read a CSV file "file" which contains URLs and create a
-     * new CSV file that contains those original URLs shorted.
+     * Method that creates a CSV file that contains shorted URLs
      *
      * @param file    CSV File which contains URLs separated with ;
      * @param request request
@@ -272,15 +272,16 @@ public class UrlShortenerController {
                     @ApiResponse(responseCode = "400", description = "Invalid file format")
             }
     )
-    public ResponseEntity<String> uploadCsv(@RequestParam(name = "file") MultipartFile file,
+    public ResponseEntity<?> uploadCsv(@RequestParam(name = "file") MultipartFile file,
                                             HttpServletRequest request) {
         if (csvHelper.hasCSVFormat(file)) {
             try {
+                // Name of the shorted CSV file
+                String filename = UUID.randomUUID() + ".csv";
                 //CSV to return
-//            File f = new File("files\\" + filename);
-                String filename = csvHelper.save(file, request.getRemoteAddr());
+                URI location = csvHelper.save(filename, file, request.getRemoteAddr());
                 // Return CSV file name and Http Status
-                return new ResponseEntity<>(filename, HttpStatus.CREATED);
+                return ResponseEntity.created(location).body(filename);
             } catch (Exception e) {
                 e.printStackTrace();
                 return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);

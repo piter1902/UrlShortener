@@ -60,6 +60,7 @@ public class ShortURLService {
                 .randomOwner()
                 .temporaryRedirect()
                 .treatAsSafe()
+                .notValidated()
                 .ip(ip)
                 .unknownCountry()
                 .emptyQrPath()

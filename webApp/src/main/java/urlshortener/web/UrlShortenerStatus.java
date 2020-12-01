@@ -44,7 +44,7 @@ public class UrlShortenerStatus {
             // ShortUrl exists
             // Creation of URI
             ShortURL aux = shortURLService.create(su.getTarget(), null, request.getRemoteAddr());
-            ShortUrlStatus shortUrlStatus = new ShortUrlStatus(hash, su.getSafe(), aux.getUri());
+            ShortUrlStatus shortUrlStatus = new ShortUrlStatus(hash, su.getSafe(), su.getValidated(), aux.getUri());
             return new ResponseEntity<>(shortUrlStatus, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);

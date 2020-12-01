@@ -18,6 +18,7 @@ public class ShortURLBuilder {
     private String owner;
     private Integer mode;
     private Boolean safe;
+    private Boolean validated;
     private String ip;
     private String country;
     private String qrCode;
@@ -36,6 +37,7 @@ public class ShortURLBuilder {
                 owner,
                 mode,
                 safe,
+                validated,
                 ip,
                 country,
                 qrCode
@@ -70,6 +72,11 @@ public class ShortURLBuilder {
 
     ShortURLBuilder treatAsSafe() {
         this.safe = true;
+        return this;
+    }
+
+    ShortURLBuilder notValidated() {
+        this.validated = false;
         return this;
     }
 

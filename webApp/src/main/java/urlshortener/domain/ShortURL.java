@@ -40,6 +40,11 @@ public class ShortURL /*implements Serializable*/ {
             description = "Target URL is reachable", required = true, example = "true", allowableValues = {"true", "false"})
     private Boolean safe;
 
+    // Status of validation process
+    @Schema(title = "Validation Status", name = "validated", description = "Status of validation process",
+            required = true, example = "true", allowableValues = {"true", "false"})
+    private Boolean validated;
+
     @Schema(title = "IP", name = "ip", description = "Request IP", required = true, example = "192.168.0.158")
     private String ip;
 
@@ -52,7 +57,7 @@ public class ShortURL /*implements Serializable*/ {
     private String qrCode;
 
     public ShortURL(String hash, String target, URI uri, String sponsor,
-                    String created, String owner, Integer mode, Boolean safe, String ip,
+                    String created, String owner, Integer mode, Boolean safe, Boolean validated, String ip,
                     String country, String qrCode) {
         this.hash = hash;
         this.target = target;
@@ -62,6 +67,7 @@ public class ShortURL /*implements Serializable*/ {
         this.owner = owner;
         this.mode = mode;
         this.safe = safe;
+        this.validated = validated;
         this.ip = ip;
         this.country = country;
         this.qrCode = qrCode;
@@ -132,6 +138,14 @@ public class ShortURL /*implements Serializable*/ {
 
     public void setSafe(Boolean safe) {
         this.safe = safe;
+    }
+
+    public Boolean getValidated() {
+        return validated;
+    }
+
+    public void setValidated(Boolean validated) {
+        this.validated = validated;
     }
 
     public String getIP() {

@@ -91,7 +91,7 @@ public class SystemTests {
     }
 
     @Test(timeout = 2000)
-    @Ignore // TODO: Ignored till Workers can be launched for testing
+    @Ignore // TODO: Ignored until Workers can be launched for testing
     public void testRedirection() throws Exception {
         postLink("http://example.org/");
         // Wait for workers validation

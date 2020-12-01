@@ -256,6 +256,12 @@ public class UrlShortenerController {
         if (su != null && !su.getQrCode().isEmpty()) {
             // QR exits
             return new ResponseEntity<>(qrCodeService.getQrByteArray(hash), HttpStatus.OK);
+        } else if (su != null) {
+            // QR not exists but there is a shortUrl su that su.hash = hash
+            // Create QR code
+            su.setQrCode(qrCodeService.getQRCode(su));
+            shortUrlService.saveQrPath(su);
+            return new ResponseEntity<>(qrCodeService.getQrByteArray(hash), HttpStatus.OK);
         } else {
             // QR not exists
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
@@ -286,7 +292,7 @@ public class UrlShortenerController {
             }
     )
     public ResponseEntity<?> uploadCsv(@RequestParam(name = "file") MultipartFile file,
-                                            HttpServletRequest request) {
+                                       HttpServletRequest request) {
         if (csvHelper.hasCSVFormat(file)) {
             try {
                 // Name of the shorted CSV file

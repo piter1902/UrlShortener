@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -29,6 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -78,8 +81,8 @@ public class UrlShortenerController {
      * @param id      of shortUrl (hash code)
      * @param request object
      * @return 307 and redirects to shortUrl(id).target iff shortUrl(id) exists and it's safe.
-     * 400 iff shortUrl(id) not exists and shortUrl(id) isn't safe or shortUrl(id).validated is false.
-     * 404 iff shortUrl(id) not exists.
+     * 400 and json object with error field iff shortUrl(id) not exists and shortUrl(id) isn't safe or shortUrl(id).validated is false.
+     * 404 and json object with error field iff shortUrl(id) not exists.
      */
     @RequestMapping(value = "/{id:(?!link|index).*}", method = RequestMethod.GET)
     @Operation(method = "GET", description = "Redirects from shortened URL to target URL")
@@ -90,10 +93,12 @@ public class UrlShortenerController {
                             responseCode = "307", description = "Redirecting to target URL. OK."
                     ),
                     @ApiResponse(
-                            responseCode = "400", description = "Destination URL unreachable or it hasn't been validated yet. ERROR."
+                            responseCode = "400", description = "Destination URL unreachable or it hasn't been validated yet. ERROR.",
+                            content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ error: \"Error messsage\"}"))
                     ),
                     @ApiResponse(
-                            responseCode = "404", description = "ID not found. ERROR."
+                            responseCode = "404", description = "ID not found. ERROR.",
+                            content = @Content(mediaType = "application/json", examples = @ExampleObject(value = "{ error: \"Error messsage\"}"))
                     )
             }
     )
@@ -109,10 +114,20 @@ public class UrlShortenerController {
             return createSuccessfulRedirectToResponse(l);
         } else if (l != null && (!l.getSafe() || !l.getValidated())) {
             // 400
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            // Creation of error message
+            Map<String, String> jsonErrorMap = new HashMap<>();
+            String errorValue = "URL de destino no validada todavía";
+            if (!l.getSafe()) {
+                // error is url unreachable
+                errorValue = "URL de destino no alcanzable";
+            }
+            jsonErrorMap.put("error", errorValue);
+            return new ResponseEntity<>(jsonErrorMap, HttpStatus.BAD_REQUEST);
         } else {
             // 404
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Map<String, String> jsonErrorMap = new HashMap<>();
+            jsonErrorMap.put("error", String.format("El hash %s no existe", id));
+            return new ResponseEntity<>(jsonErrorMap, HttpStatus.NOT_FOUND);
         }
     }
 

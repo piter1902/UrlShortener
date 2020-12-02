@@ -20,10 +20,7 @@ import urlshortener.web.UrlShortenerController;
 import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Declares methods to manage csv files
@@ -67,14 +64,14 @@ public class CSVHelper {
         ShortURL su = shortUrlService.create(url, null, remoteAddr);
         su = shortUrlService.findByKey(su.getHash());
         if (su == null) {
-            log.debug("No existe url. Creando ...");
+            log.info("No existe url. Creando ...");
             // ShortUrl DOES NOT exists. Saving it.
             su = shortUrlService.save(url, null, remoteAddr);
             // Check if url is safe
             validateURL(su);
         } else {
             // ShortUrl exists. Return it.
-            log.debug("Existe url. Devolviendo.");
+            log.info("Existe url. Devolviendo.");
             su = shortUrlService.save(url, null, remoteAddr);
         }
         return su;
@@ -108,10 +105,10 @@ public class CSVHelper {
             // Contains all records from the original CSV file
             Iterable<CSVRecord> csvRecords = csvParser.getRecords();
             // CSVWriter to the shorted CSV file
-            CSVPrinter printer = new CSVPrinter(new FileWriter("files/" + filename), CSVFormat.DEFAULT.withDelimiter(';'));
+            CSVPrinter printer = new CSVPrinter(new FileWriter("files/" + filename), CSVFormat.DEFAULT);
             // For each line
             for (CSVRecord csvRecord : csvRecords) {
-                log.debug("CSV line content:" + csvRecords);
+                log.info("CSV line content:" + csvRecord);
                 Iterator<String> values = csvRecord.iterator();
                 for (Iterator<String> it = values; it.hasNext(); ) {
                     String url = it.next();
@@ -121,22 +118,30 @@ public class CSVHelper {
                         // Shorts the url
                         ShortURL su = shortUrl(url, remoteAddr);
                         // Write on the CSV file
-                        printer.printRecord(su.getUri());
+                        //printer.printRecord(su.getUri());
+                        log.info("Original URL: " + url);
+                        log.info("Shorted URL: " + su.getUri());
+                        List<String> csvLine = new ArrayList<>();
+                        csvLine.add(url);
+                        csvLine.add(su.getUri().toString());
+                        csvLine.add("");
+                        printer.printRecord(csvLine);
                         // It's just important the first URL shorted
                         if (firstTime) {
                             location = su.getUri();
                             firstTime = false;
                         }
-                        log.debug("Original URL: " + url);
-                        log.debug("Shorted URL: " + su.getUri());
                     } else {
                         // Url NOT valid
                         // Write "ERROR" on the CSV file
-                        printer.printRecord("ERROR: Invalid URL");
-                        log.debug("Invalid URL: " + url);
+                        List<String> csvLine = new ArrayList<>();
+                        csvLine.add(url);
+                        csvLine.add("");
+                        csvLine.add("debe ser una URI http o https");
+                        printer.printRecord(csvLine);
+                        log.info("Invalid URL: " + url);
                     }
                 }
-                printer.println();
             }
             // Close output stream
             printer.close();

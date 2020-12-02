@@ -300,7 +300,7 @@ public class UrlShortenerController {
                 //CSV to return
                 URI location = csvHelper.save(filename, file, request.getRemoteAddr());
                 // Return CSV file name and Http Status
-                return ResponseEntity.created(location).body(filename);
+                return ResponseEntity.created(location).contentType(MediaType.parseMediaType("text/csv")).body(filename);
             } catch (Exception e) {
                 e.printStackTrace();
                 return new ResponseEntity<>(new Gson().toJson("error: Invaild file format"), HttpStatus.BAD_REQUEST);
@@ -365,7 +365,7 @@ public class UrlShortenerController {
 
             return ResponseEntity.ok()
                     .headers(responseHeaders)
-                    .contentType(MediaType.parseMediaType("application/csv"))
+                    .contentType(MediaType.parseMediaType("text/csv"))
                     .body(resource);
 
         } catch (IOException e) {

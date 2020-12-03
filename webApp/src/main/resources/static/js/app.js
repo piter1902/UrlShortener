@@ -27,24 +27,41 @@ $(document).ready(
             // Tutorial https://www.accelebrate.com/blog/web-page-file-uploads-ajax-part-2-of-3/
             $("#file-upload-form").on("submit", function(e){
                 e.preventDefault();
-
                 // Create a new FormData object to hold the file datavar
                 fd = new FormData();
                 // Add the data from the file input field to the FormData object
                 fd.append("file", document.getElementById("file-upload-input").files[0]);
                 // Initialize a new XHR object
                 var xhr = new XMLHttpRequest();
+                // Progress bar object
+                var progressBar = document.getElementById("progress")
                 // handle ready state change events
                 xhr.onreadystatechange = function() {
 
                   if (xhr.readyState === 4 && xhr.status === 201) {
                     // upload is complete, output result data
                     console.log(xhr.responseText);
+                    progressBar.value = 0;
                     downloadFile(xhr.responseText);
                   }
                 };
-                 // configure the request
-                  xhr.open("POST", "/uploadCSV");
+
+                // configure the request
+                xhr.open("POST", "/uploadCSV");
+                // Show progress bar while uploading file
+                xhr.upload.onprogress = function (e) {
+                    if (e.lengthComputable) {
+                        progressBar.max = e.total;
+                        progressBar.value = e.loaded;
+                    }
+                }
+                xhr.upload.onloadstart = function (e) {
+                    progressBar.value = 0;
+                }
+                xhr.upload.onloadend = function (e) {
+                    progressBar.value = e.loaded;
+                }
+
                   // makes the request and uploads the form data
                   xhr.send(fd);
             });

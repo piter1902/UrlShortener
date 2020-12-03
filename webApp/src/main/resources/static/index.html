@@ -10,6 +10,11 @@
             type="text/javascript"></script>
     <script src="js/app.js" type="text/javascript">
     </script>
+    <style>
+        .hide-me {
+            display:none;
+        }
+    </style>
 </head>
 <body>
 <div class="container-full">
@@ -36,6 +41,8 @@
                 <div class="form-group">
                     <label for="file-upload-input">Select CSV file to upload</label>
                     <input class="center-block form-control-file" id="file-upload-input" name="file" type="file" accept=".csv">
+                    <br>
+                    <progress id="progress" value="0"></progress>
                     <br>
                     <button type="submit">Start Upload</button>
                 </div>

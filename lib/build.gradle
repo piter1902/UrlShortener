@@ -5,20 +5,16 @@ plugins {
     id 'maven-publish'
 }
 
-apply plugin: 'idea'
-apply plugin: 'eclipse'
-
 group 'ingweb'
-version '1.0'
+version '0.0.1-SNAPSHOT'
+
 sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile project (':lib')
     // Spring dependencies
     //implementation 'org.springframework.boot:spring-boot-starter-data-jdbc' // (not in use)
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
@@ -52,21 +48,5 @@ dependencies {
     // Google GSON for JSON serialization
     implementation 'com.google.code.gson:gson:2.8.6'
 
-    //CSV parser
-    implementation 'org.apache.commons:commons-csv:1.8'
-}
-
-test {
-    useJUnitPlatform()
-}
-
-publishing{
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
-}
-clean.doFirst {
-    delete "db"
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }

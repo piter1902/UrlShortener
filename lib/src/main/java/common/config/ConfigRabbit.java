@@ -1,6 +1,7 @@
-package UrlShortenerWorkers.Config;
+package common.config;
 
-import UrlShortenerWorkers.workers.Receiver;
+import common.rabbit.Receiver;
+import common.rabbit.Sender;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -11,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
 @Configuration
-public class RabbitConfig {
+public class ConfigRabbit {
 
     public static final String EXCHANGE_NAME = "url-safeness-verificartor";
 
@@ -51,5 +52,11 @@ public class RabbitConfig {
     MessageListenerAdapter listenerAdapter(Receiver receiver) {
         return new MessageListenerAdapter(receiver, Receiver.RECEIVE_METHOD_NAME);
     }
+
+    @Bean
+    Sender sender() {
+        return new Sender();
+    }
+
 
 }

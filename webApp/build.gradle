@@ -31,7 +31,7 @@ dependencies {
     implementation 'commons-validator:commons-validator:1.6'
     implementation 'com.google.guava:guava:28.1-jre'
 
-    runtime 'org.webjars:bootstrap:3.3.5'
+    runtime 'org.webjars:bootstrap:4.1.0'
     runtime 'org.webjars:jquery:2.1.4'
 
     // DB (not in use)

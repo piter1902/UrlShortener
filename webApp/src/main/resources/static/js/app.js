@@ -9,7 +9,7 @@ $(document).ready(
                     data: $(this).serialize(),
                     success: function (msg) {
                         $("#result").html(
-                            "<div class='alert alert-success lead'><a target='_blank' href='"
+                            "<div class='alert alert-success lead '><a target='_blank' href='"
                             + msg.uri
                             + "'>"
                             + msg.uri
@@ -23,6 +23,13 @@ $(document).ready(
                             "<div class='alert alert-danger lead'>ERROR</div>");
                     }
                 });
+            });
+            // Add the following code if you want the name of the file appear on select
+            $(".custom-file-input").on("change", function() {
+              var fileName = $(this).val().split("\\").pop();
+              $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+              var uploadButton = document.getElementById("uploadButton");
+              uploadButton.disabled = false;
             });
             // Tutorial https://www.accelebrate.com/blog/web-page-file-uploads-ajax-part-2-of-3/
             $("#file-upload-form").on("submit", function(e){

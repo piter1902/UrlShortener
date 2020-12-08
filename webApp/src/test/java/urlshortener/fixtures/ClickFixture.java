@@ -1,7 +1,7 @@
 package urlshortener.fixtures;
 
+import common.domain.ShortURL;
 import urlshortener.domain.Click;
-import urlshortener.domain.ShortURL;
 
 public class ClickFixture {
 

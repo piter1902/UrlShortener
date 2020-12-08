@@ -1,6 +1,8 @@
 package urlshortener.web;
 
 import com.google.gson.Gson;
+import common.domain.ShortURL;
+import common.rabbit.Sender;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,8 +24,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import urlshortener.domain.ShortURL;
-import urlshortener.rabbitAdapters.Sender;
 import urlshortener.service.*;
 
 import javax.servlet.http.HttpServletRequest;

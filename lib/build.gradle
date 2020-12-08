@@ -14,6 +14,13 @@ repositories {
     mavenCentral()
 }
 
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = true
+}
+
 dependencies {
     // Spring dependencies
     //implementation 'org.springframework.boot:spring-boot-starter-data-jdbc' // (not in use)

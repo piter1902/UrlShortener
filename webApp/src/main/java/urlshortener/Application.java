@@ -1,12 +1,12 @@
 package urlshortener;
 
+import common.rabbit.Sender;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-import urlshortener.rabbitAdapters.Sender;
 
 @SpringBootApplication
 public class Application extends SpringBootServletInitializer /*implements CommandLineRunner*/ {

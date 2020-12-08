@@ -4,10 +4,10 @@ import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
+import common.domain.ShortURL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import urlshortener.domain.ShortURL;
 import urlshortener.fixtures.ShortURLFixture;
 
 import javax.imageio.ImageIO;

@@ -1,5 +1,7 @@
 package urlshortener.web;
 
+import common.domain.ShortURL;
+import common.rabbit.Sender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -8,8 +10,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import urlshortener.domain.ShortURL;
-import urlshortener.rabbitAdapters.Sender;
 import urlshortener.service.ClickService;
 import urlshortener.service.QRCodeService;
 import urlshortener.service.ShortURLService;

@@ -1,4 +1,3 @@
-rootProject.name = 'urlShortener'
 
 include 'webApp'
 include 'workers'

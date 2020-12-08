@@ -1,7 +1,7 @@
 package urlshortener.service;
 
+import common.domain.ShortURL;
 import org.springframework.http.HttpStatus;
-import urlshortener.domain.ShortURL;
 
 import java.net.URI;
 import java.sql.Date;

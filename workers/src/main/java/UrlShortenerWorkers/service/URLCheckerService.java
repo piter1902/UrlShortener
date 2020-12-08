@@ -1,4 +1,4 @@
-package common.service;
+package UrlShortenerWorkers.service;
 
 
 import common.domain.ShortURL;

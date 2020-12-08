@@ -1,7 +1,6 @@
-package common.config;
+package UrlShortenerWorkers.config;
 
-import common.rabbit.Receiver;
-import common.rabbit.Sender;
+import UrlShortenerWorkers.rabbit.Receiver;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
@@ -51,11 +50,6 @@ public class ConfigRabbit {
     @Bean
     MessageListenerAdapter listenerAdapter(Receiver receiver) {
         return new MessageListenerAdapter(receiver, Receiver.RECEIVE_METHOD_NAME);
-    }
-
-    @Bean
-    Sender sender() {
-        return new Sender();
     }
 
 

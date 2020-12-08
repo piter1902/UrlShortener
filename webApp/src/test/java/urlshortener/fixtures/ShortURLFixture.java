@@ -1,6 +1,7 @@
 package urlshortener.fixtures;
 
-import urlshortener.domain.ShortURL;
+
+import common.domain.ShortURL;
 
 import java.net.URI;
 

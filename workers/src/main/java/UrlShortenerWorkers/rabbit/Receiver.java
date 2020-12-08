@@ -1,9 +1,8 @@
-package common.rabbit;
+package UrlShortenerWorkers.rabbit;
 
-
+import UrlShortenerWorkers.service.URLCheckerService;
 import com.google.gson.Gson;
 import common.domain.ShortURL;
-import common.service.URLCheckerService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.MalformedURLException;

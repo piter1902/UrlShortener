@@ -1,7 +1,10 @@
 package UrlShortenerWorkers.Config;
 
 import UrlShortenerWorkers.workers.Receiver;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -15,11 +18,11 @@ public class RabbitConfig {
 
     public static final String EXCHANGE_NAME = "url-safeness-verificartor";
 
-//    static final String queueName = "urlshortener";
+    static final String queueName = "urlshortener";
 
     @Bean
     public Queue queue() {
-        return new AnonymousQueue();
+        return new Queue(queueName);
     }
 
     @Bean

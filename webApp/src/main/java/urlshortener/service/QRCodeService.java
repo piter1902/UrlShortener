@@ -5,6 +5,9 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import urlshortener.domain.ShortURL;
 
@@ -18,6 +21,8 @@ import java.net.URISyntaxException;
 
 @Service
 public class QRCodeService {
+
+    private final Logger log = LoggerFactory.getLogger(QRCodeService.class);
 
 
     /**
@@ -33,13 +38,30 @@ public class QRCodeService {
      * @throws IOException     iff ByteArrayOutputStream fails
      */
     private String generateQRCode(ShortURL su) throws WriterException, IOException {
+        // Create QR path
+        String qrFilePath = "qr/" + su.getHash();
+        processQrAsync(su, qrFilePath);
+        return qrFilePath;
+    }
+
+    /**
+     * Creates and writes QR code asynchronously and stores it in [qrFilePath] as PNG file
+     *
+     * @param su         to convert to QR code
+     * @param qrFilePath to save QR code
+     * @throws WriterException iff QR encoder fails
+     * @throws IOException     iff ByteArrayOutputStream fails
+     */
+    @Async
+    private void processQrAsync(ShortURL su, String qrFilePath) throws WriterException, IOException {
+        log.info(String.format("Processing QR code for %s asynchronously\n", su.getTarget()));
+        // Process QR asynchronously
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(su.getUri().toASCIIString(), BarcodeFormat.QR_CODE, 200, 200);
         BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
         // Save QR to /qr directory
-        String qrFilePath = "qr/" + su.getHash();
         ImageIO.write(bufferedImage, "png", new File(qrFilePath + ".png"));
-        return qrFilePath;
+        log.info("End of async processing");
     }
 
     /**

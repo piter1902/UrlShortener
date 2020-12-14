@@ -87,6 +87,93 @@ $(document).ready(
                   xhr.open("GET", "/files/"+fileName, true);
                   xhr.send();
             }
+
+            ///////////////WebSocket functionality//////////////////
+            // Source: https://stackoverflow.com/questions/27959052/send-a-file-using-websocket-javascript-client
+            var ws;
+            function WebSocketTest()
+            {
+              if ("WebSocket" in window)
+              {
+                 console.log("WebSocket is supported by your Browser!");
+                 // Let us open a web socket
+                 ws = new WebSocket("ws://xx.xx.xx.xx:yyyy/service/audioHandler");
+                 ws.onopen = function()
+                 {
+                    // Web Socket is connected, send data using send()
+                    ws.send(JSON.stringify({userName:'xxxx',password:'sgdfgdfgdfgdfgdf'}));
+                    console.log("Message is sent...");
+                 };
+                 ws.onmessage = function (evt)
+                 {
+                    var received_msg = evt.data;
+                    console.log("Message is received...");
+                 };
+                 ws.onclose = function()
+                 {
+                    // websocket is closed.
+                    console.log("Connection is closed...");
+                 };
+              }
+              else
+              {
+                 // The browser doesn't support WebSocket
+                 console.log("WebSocket NOT supported by your Browser!");
+              }
+            }
+
+
+            var stompClient = null;
+            var connectButton = document.getElementById("connectWS");
+            connectButton.onclick = function() {connect()};
+
+            function connect() {
+                var socket = new SockJS('/ws-uploadCSV');
+                socket.binaryType = "arraybuffer";
+                stompClient = Stomp.over(socket);
+                console.log("Connecting STOMP ...");
+                stompClient.connect({}, function (frame) {
+                    console.log('Connected: ' + frame);
+                    stompClient.subscribe('/topic/getCSV',callback);
+                });
+            }
+
+            // Print received messages from the server
+            callback =  function (msg) {
+              if (msg.body){
+                console.log("Message from server: " + msg.body);
+              }else{
+                console.log("Empty msg.")
+              }
+             }
+
+            var connectButton = document.getElementById("uploadButtonWS");
+            connectButton.onclick = function() {sendFileWS()};
+
+                 function sendFileWS(){
+                var file = document.getElementById('file-upload-input').files[0];
+                //var blob = new Blob(file);
+//                ws.binaryType = "arraybuffer";
+//                ws.send('filename:'+file.name);
+                var reader = new FileReader();
+                var rawData = new ArrayBuffer();
+//                var headers = {};
+//                headers["content-type"] = "text/plain";
+                console.log("File content: " + file);
+                reader.loadend = function() {
+                }
+
+                reader.onload = function(e) {
+                    rawData = e.target.result;
+                    console.log("Sending: " + rawData);
+                    // Poner cabecera de que es de texto
+                    stompClient.send("/app/uploadCSV", {}, rawData);
+                    console.log("the File has been transferred.")
+                    //ws.send('end');
+                }
+                reader.readAsText(file);
+            }
+
          //Tutorial: https://attacomsian.com/blog/spring-boot-file-upload-with-ajax
 //        $("#file-upload-form").on("submit", function(e){
 //            e.preventDefault();

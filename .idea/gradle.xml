@@ -17,17 +17,6 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
-        <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/webApp" />
-        <option name="gradleHome" value="/usr/local/Cellar/gradle/6.6.1/libexec" />
-        <option name="gradleJvm" value="11.0.7" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/webApp" />
-          </set>
-        </option>
-      </GradleProjectSettings>
-      <GradleProjectSettings>
         <option name="disableWrapperSourceDistributionNotification" value="true" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/workers" />

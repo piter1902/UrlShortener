@@ -8,6 +8,9 @@
       <module name="ingweb.urlShortener.test" target="1.8" />
       <module name="urlShortener-multi-module.main" target="1.8" />
       <module name="urlShortener-multi-module.test" target="1.8" />
+      <module name="urlShortener-webApp" target="1.8" />
+      <module name="urlShortener-webApp.main" target="1.8" />
+      <module name="urlShortener-webApp.test" target="1.8" />
       <module name="UrlShortener.main" target="1.8" />
       <module name="urlShortener.main" target="1.8" />
       <module name="UrlShortener.test" target="1.8" />

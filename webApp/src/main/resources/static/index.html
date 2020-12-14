@@ -10,6 +10,8 @@
     <script src="webjars/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
     <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"
             type="text/javascript"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
     <script src="js/app.js" type="text/javascript">
     </script>
     <style type="text/css">
@@ -20,10 +22,12 @@
           padding: 4px;
           border: 0 none;
         }
-
     </style>
 </head>
 <body>
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+    enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
 <div class="container-full">
     <div class="row">
         <div class="col-lg-12 text-center">
@@ -37,6 +41,7 @@
                     <span class="input-group-btn"><button
                             class="btn btn-lg btn-primary" type="submit">Short me!</button></span>
                 </div>
+                <br>
                 <div>
                     <label for="qrcode">Generate QR code</label>
                     <input id="qrcode" name="qrcode" title="Generate QR code" type="checkbox">
@@ -44,17 +49,6 @@
             </form>
             <br>
             <br>
-            <!--            <form id="file-upload-form">-->
-            <!--                <div class="form-group">-->
-            <!--                    <label for="file-upload-input">Select CSV file to upload</label>-->
-            <!--                    <input class="center-block form-control-file" id="file-upload-input" name="file" type="file"-->
-            <!--                           accept=".csv">-->
-            <!--                    <br>-->
-            <!--                    <progress id="progress" value="0"></progress>-->
-            <!--                    <br>-->
-            <!--                    <button type="submit">Start Upload</button>-->
-            <!--                </div>-->
-            <!--            </form>-->
             <form id="file-upload-form">
                 <div class="custom-file  col-sm-offset-4 col-sm-4 mx-auto">
                     <input type="file" class="custom-file-input" id="file-upload-input" accept=".csv">
@@ -62,7 +56,11 @@
                     <br>
                     <progress id="progress" value="0"></progress>
                     <br>
+<!--                    <button type="button" class="btn btn-danger" onclick="WebSocketTest()">Connect</button>-->
                     <button id="uploadButton" type="submit" disabled>Start Upload</button>
+                    <button id="connectWS" type="button" class="btn btn-warning">connect</button>
+                    <button id="uploadButtonWS" type="button" class="btn btn-warning">websocketUpload</button>
+
                 </div>
             </form>
         </div>

@@ -90,38 +90,7 @@ $(document).ready(
 
             ///////////////WebSocket functionality//////////////////
             // Source: https://stackoverflow.com/questions/27959052/send-a-file-using-websocket-javascript-client
-            var ws;
-            function WebSocketTest()
-            {
-              if ("WebSocket" in window)
-              {
-                 console.log("WebSocket is supported by your Browser!");
-                 // Let us open a web socket
-                 ws = new WebSocket("ws://xx.xx.xx.xx:yyyy/service/audioHandler");
-                 ws.onopen = function()
-                 {
-                    // Web Socket is connected, send data using send()
-                    ws.send(JSON.stringify({userName:'xxxx',password:'sgdfgdfgdfgdfgdf'}));
-                    console.log("Message is sent...");
-                 };
-                 ws.onmessage = function (evt)
-                 {
-                    var received_msg = evt.data;
-                    console.log("Message is received...");
-                 };
-                 ws.onclose = function()
-                 {
-                    // websocket is closed.
-                    console.log("Connection is closed...");
-                 };
-              }
-              else
-              {
-                 // The browser doesn't support WebSocket
-                 console.log("WebSocket NOT supported by your Browser!");
-              }
-            }
-
+            // Source split file: https://deliciousbrains.com/using-javascript-file-api-to-avoid-file-upload-limits/
 
             var stompClient = null;
             var connectButton = document.getElementById("connectWS");
@@ -150,28 +119,47 @@ $(document).ready(
             var connectButton = document.getElementById("uploadButtonWS");
             connectButton.onclick = function() {sendFileWS()};
 
-                 function sendFileWS(){
+            function sendFileWS(){
                 var file = document.getElementById('file-upload-input').files[0];
-                //var blob = new Blob(file);
-//                ws.binaryType = "arraybuffer";
-//                ws.send('filename:'+file.name);
+                //console.log("File content: " + file);
+                var slice_size = 1024;
+
                 var reader = new FileReader();
                 var rawData = new ArrayBuffer();
+                upload_file( 0 );
+
+                function upload_file( start ){
+                    var next_slice = start + slice_size + 1;
+                    var blob = file.slice( start, next_slice );
+                    reader.onloadend = function( event ) {
+                        if ( event.target.readyState !== FileReader.DONE ) {
+                            return;
+                        }
+                        rawData = event.target.result;
+                        //console.log("Sending: " + rawData);
+                        // Poner cabecera de que es de texto
+                        stompClient.send("/app/uploadCSV", {}, rawData);
+                        console.log("Part transfered. Size: " + next_slice );
+                        // Once tranfered a part, check if there are more content to send
+                        var size_done = start + slice_size;
+                        var percent_done = Math.floor( ( size_done / file.size ) * 100 );
+
+                        if ( next_slice < file.size ) {
+                            // Update upload progress
+                            $( '#dbi-upload-progress' ).html( `Uploading File -  ${percent_done}%` );
+
+                            // More to upload, call function recursively
+                            upload_file( next_slice );
+                        } else {
+                            // Update upload progress
+                            $( '#dbi-upload-progress' ).html( 'Upload Complete!' );
+                        }
+                    }
+                    reader.readAsText(blob);
+                }
 //                var headers = {};
 //                headers["content-type"] = "text/plain";
-                console.log("File content: " + file);
-                reader.loadend = function() {
-                }
 
-                reader.onload = function(e) {
-                    rawData = e.target.result;
-                    console.log("Sending: " + rawData);
-                    // Poner cabecera de que es de texto
-                    stompClient.send("/app/uploadCSV", {}, rawData);
-                    console.log("the File has been transferred.")
-                    //ws.send('end');
-                }
-                reader.readAsText(file);
             }
 
          //Tutorial: https://attacomsian.com/blog/spring-boot-file-upload-with-ajax

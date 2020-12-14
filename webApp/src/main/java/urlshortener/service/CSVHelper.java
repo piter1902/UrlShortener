@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.rabbitAdapters.Sender;
@@ -35,6 +36,9 @@ public class CSVHelper {
     private ShortURLService shortUrlService;
     @Autowired
     private Sender sender;
+    @Autowired
+    private SimpMessagingTemplate simpMessagingTemplate;
+    private static final String WS_MESSAGE_TRANSFER_DESTINATION = "/topic/getCSV";
 
     // Set of valid file types
     public final Set<String> TYPES = new HashSet<String>() {{
@@ -43,6 +47,8 @@ public class CSVHelper {
     }};
 
     private static final Logger log = LoggerFactory.getLogger(CSVHelper.class);
+
+
 
     /**
      * @param file uploaded file
@@ -94,8 +100,9 @@ public class CSVHelper {
      * @param remoteAddr addr of the HttpRequest
      * @return name of the created CSV file
      */
-    public URI save(String filename, MultipartFile file, String remoteAddr) {
+    public URI saveCsv(String filename, MultipartFile file, String remoteAddr) {
         try {
+            log.info("Remote Addr: " + remoteAddr);
             boolean firstTime = true;
             URI location = null; // Element to return on the location
             // Stream to read the content from the original CSV file
@@ -151,4 +158,45 @@ public class CSVHelper {
         }
     }
 
+    /**
+     *
+     * @param urlSlice block of urls received from the client
+     */
+    public void saveCsvWS(String urlSlice, String remoteAddr) {
+        UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
+        String message;
+        // Obtain each url from the slice
+        for (String url : urlSlice.split(",")){
+
+            //Check if the url is valid
+            if (urlValidator.isValid(url)) {
+                // Shorts the url
+                ShortURL su = shortUrl(url, remoteAddr);
+                // Write on the CSV file
+                //printer.printRecord(su.getUri());
+                log.info("Original URL: " + url);
+                log.info("Shorted URL: " + su.getUri().toString());
+                // Creates the message to the user
+                message = url + "," + su.getUri().toString() + "," + "";
+                sendMessage(message);
+
+            } else {
+                // Url NOT valid
+                // Write "ERROR" on the CSV file
+                message = url + "," +  "," + "debe ser una URI http o https";
+                sendMessage(message);
+                log.info("Invalid URL: " + url);
+            }
+        }
+    }
+
+    /**
+     * Sends the shorted url to the user using simpMessagingTemplate
+     * Source: https://www.mokkapps.de/blog/sending-message-to-specific-anonymous-user-on-spring-websocket/
+     * @param message message to the user
+     *
+     */
+    private void sendMessage(String message){
+        simpMessagingTemplate.convertAndSend(WS_MESSAGE_TRANSFER_DESTINATION, message);
+    }
 }

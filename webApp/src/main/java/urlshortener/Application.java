@@ -1,6 +1,5 @@
 package urlshortener;
 
-import common.rabbit.Sender;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -18,8 +17,8 @@ public class Application extends SpringBootServletInitializer /*implements Comma
     @Autowired
     RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    Sender sender;
+//    @Autowired
+//    Sender sender;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);

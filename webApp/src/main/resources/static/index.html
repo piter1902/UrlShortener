@@ -3,15 +3,29 @@
 <head>
     <title>URL Shortener</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <link href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"
-          type="text/css"/>
+    <!--    <link href="webjars/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"-->
+    <!--          type="text/css"/>-->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="webjars/jquery/2.1.4/jquery.min.js" type="text/javascript"></script>
     <script src="webjars/bootstrap/3.3.5/js/bootstrap.min.js"
             type="text/javascript"></script>
     <script src="js/app.js" type="text/javascript">
     </script>
+    <style type="text/css">
+        progress {
+          display: block; /* default: inline-block */
+          width: 300px;
+          margin: 2em auto;
+          padding: 4px;
+          border: 0 none;
+        }
+    </style>
 </head>
 <body>
+<noscript><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websocket relies on Javascript being
+    enabled. Please enable
+    Javascript and reload this page!</h2></noscript>
 <div class="container-full">
     <div class="row">
         <div class="col-lg-12 text-center">
@@ -19,12 +33,13 @@
             <p class="lead">A front-end example page for the project</p>
             <br>
             <form action="" class="col-lg-12" id="shortener" role="form">
-                <div class="input-group input-group-lg col-sm-offset-4 col-sm-4">
+                <div class="input-group input-group-lg col-sm-offset-4 col-sm-4 mx-auto">
                     <input class="center-block form-control input-lg" name="url"
                            placeholder="Enter a URL" title="Enter a URL" type="text">
                     <span class="input-group-btn"><button
                             class="btn btn-lg btn-primary" type="submit">Short me!</button></span>
                 </div>
+                <br>
                 <div>
                     <label for="qrcode">Generate QR code</label>
                     <input id="qrcode" name="qrcode" title="Generate QR code" type="checkbox">
@@ -33,17 +48,22 @@
             <br>
             <br>
             <form id="file-upload-form">
-                <div class="form-group">
-                    <label for="file-upload-input">Select CSV file to upload</label>
-                    <input class="form-control-file" id="file-upload-input" name="file" type="file">
-                    <button type="submit">Start Upload</button>
+                <p id="dbi-upload-progress">Please select a file and click "Upload" to continue.</p>
+                <div class="custom-file  col-sm-offset-4 col-sm-4 mx-auto">
+                    <input type="file" class="custom-file-input" id="file-upload-input" accept=".csv">
+                    <label class="custom-file-label" for="file-upload-input">Choose file</label>
+                    <br>
+                    <progress id="progress" value="0"></progress>
+                    <br>
+                    <!--                    <button type="button" class="btn btn-danger" onclick="WebSocketTest()">Connect</button>-->
+                    <button id="uploadButton" type="submit" disabled>Start Upload</button>
                 </div>
             </form>
         </div>
     </div>
     <iframe id="downloadFrame" style="display:none"></iframe>
     <div class="row">
-        <div class="col-lg-12 text-center">
+        <div class="col-lg-12 d-flex justify-content-center">
             <div class="col-sm-offset-4 col-sm-4 text-center">
                 <br/>
                 <div id="result"/>

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
 @Configuration
-public class ConfigRabbit {
+public class Rabbitt {
 
     @Bean
     Sender sender() {

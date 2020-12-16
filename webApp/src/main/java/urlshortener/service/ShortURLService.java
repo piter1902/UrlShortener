@@ -14,6 +14,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Service
 public class ShortURLService {
     //private final ShortURLRepository shortURLRepository;
+//    @Autowired
     private final ShortURLRepo shortURLRepo;
     /**
      * Public constructor
@@ -32,7 +33,7 @@ public class ShortURLService {
      * @param id hash to find
      * @return ShortUrl object with hash = [id] or {@literal null} if not exists
      */
-    public ShorURL findByKey(String id) {
+    public ShortURL findByKey(String id) {
         Optional<ShortURL> ret = shortURLRepo.findById(id);
         return ret.orElse(null);
     }

@@ -32,7 +32,7 @@ public class ShortURLService {
      * @param id hash to find
      * @return ShortUrl object with hash = [id] or {@literal null} if not exists
      */
-    public ShortURL findByKey(String id) {
+    public ShorURL findByKey(String id) {
         Optional<ShortURL> ret = shortURLRepo.findById(id);
         return ret.orElse(null);
     }

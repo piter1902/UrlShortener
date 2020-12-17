@@ -15,11 +15,11 @@ public class ConfigRabbit {
 
     public static final String EXCHANGE_NAME = "url-safeness-verificartor";
 
-//    static final String queueName = "urlshortener";
+    static final String queueName = "urlshortener";
 
     @Bean
     public Queue queue() {
-        return new AnonymousQueue();
+        return new Queue(queueName);
     }
 
     @Bean

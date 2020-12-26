@@ -1,8 +1,8 @@
 package urlshortener.service;
 
+import org.springframework.stereotype.Service;
 import urlshortener.domain.ShortURL;
 import urlshortener.repository.ShortURLRepo;
-import org.springframework.stereotype.Service;
 
 import java.net.URI;
 import java.net.URISyntaxException;

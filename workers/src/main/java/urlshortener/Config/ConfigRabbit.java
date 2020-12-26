@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 @SpringBootApplication
 @Configuration
-public class RabbitConfig {
+public class ConfigRabbit {
 
     public static final String EXCHANGE_NAME = "url-safeness-verificartor";
 

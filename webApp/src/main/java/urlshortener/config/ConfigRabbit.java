@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import urlshortener.rabbitAdapters.Sender;
 
 @Configuration
-public class RabbitConfig {
+public class ConfigRabbit {
 
     @Bean
     Sender sender() {

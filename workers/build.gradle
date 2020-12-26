@@ -18,6 +18,7 @@ repositories {
 }
 
 dependencies {
+    implementation project (':lib')
     // Spring dependencies
     //implementation 'org.springframework.boot:spring-boot-starter-data-jdbc' // (not in use)
     //implementation 'org.springframework.boot:spring-boot-starter-hateoas'

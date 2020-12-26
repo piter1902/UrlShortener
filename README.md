@@ -2,14 +2,18 @@
 
 [![Build Status](https://travis-ci.com/UNIZAR-30246-WebEngineering/UrlShortener.svg?branch=master)](https://travis-ci.com/UNIZAR-30246-WebEngineering/UrlShortener)
 
-This is the start urlshortener.repository for the project developed in this course. 
 
-The __project__ is a [Spring Boot](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/) application that offers a minimum set of functionalities shared by all subprojects.
+Link of presentation
+file: [presentacionIngWeb](https://github.com/piter1902/UrlShortener/blob/master/presentacionIngWeb.pptx).
+
+This is the start UrlShortenerWorkers.repository for the project developed in this course.
+
+The __project__ is a [Spring Boot](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/) application
+that offers a minimum set of functionalities shared by all subprojects.
 
 * __Short URL creation service__:  `POST /` creates a shortened URL from a URL in the request parameter `url`.
 * __Redirection service__: `GET /{id}` redirects the request to a URL associated with the parameter `id`.
 * __Database service__: Persistence and retrieval of `ShortURL` and `Click` objects.
-
 
 The application can be run in Linux and macOS as follows:
 

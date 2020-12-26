@@ -1,7 +1,7 @@
-package UrlShortenerWorkers.service;
+package urlshortener.service;
 
-import UrlShortenerWorkers.domain.ShortURL;
-import UrlShortenerWorkers.fixtures.ShortURLFixture;
+import urlshortener.domain.ShortURL;
+import urlshortener.fixtures.ShortURLFixture;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

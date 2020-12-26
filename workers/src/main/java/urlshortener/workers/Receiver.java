@@ -1,7 +1,7 @@
-package UrlShortenerWorkers.workers;
+package urlshortener.workers;
 
-import UrlShortenerWorkers.domain.ShortURL;
-import UrlShortenerWorkers.service.URLCheckerService;
+import urlshortener.domain.ShortURL;
+import urlshortener.service.URLCheckerService;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 

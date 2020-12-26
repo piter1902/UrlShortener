@@ -1,6 +1,6 @@
-package UrlShortenerWorkers.Config;
+package urlshortener.Config;
 
-import UrlShortenerWorkers.workers.Receiver;
+import urlshortener.workers.Receiver;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;

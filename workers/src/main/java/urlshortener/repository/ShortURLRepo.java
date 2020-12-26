@@ -1,6 +1,6 @@
-package UrlShortenerWorkers.repository;
+package urlshortener.repository;
 
-import UrlShortenerWorkers.domain.ShortURL;
+import urlshortener.domain.ShortURL;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

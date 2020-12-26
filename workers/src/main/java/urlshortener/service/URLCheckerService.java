@@ -1,6 +1,6 @@
-package UrlShortenerWorkers.service;
+package urlshortener.service;
 
-import UrlShortenerWorkers.domain.ShortURL;
+import urlshortener.domain.ShortURL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

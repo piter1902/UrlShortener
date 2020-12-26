@@ -1,4 +1,4 @@
-package UrlShortenerWorkers.domain;
+package urlshortener.domain;
 
 //import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;

@@ -1,4 +1,4 @@
-package UrlShortenerWorkers.Config;
+package urlshortener.Config;
 
 import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;

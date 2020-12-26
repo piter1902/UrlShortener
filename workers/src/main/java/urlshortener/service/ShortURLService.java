@@ -1,7 +1,7 @@
-package UrlShortenerWorkers.service;
+package urlshortener.service;
 
-import UrlShortenerWorkers.domain.ShortURL;
-import UrlShortenerWorkers.repository.ShortURLRepo;
+import urlshortener.domain.ShortURL;
+import urlshortener.repository.ShortURLRepo;
 import org.springframework.stereotype.Service;
 
 import java.net.URI;

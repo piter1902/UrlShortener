@@ -1,4 +1,4 @@
-package UrlShortenerWorkers.domain;
+package urlshortener.domain;
 
 
 import java.net.URI;

@@ -23,3 +23,7 @@ before_script:
 #after_script:
 #  # Show error
 #  - cat /home/travis/build/piter1902/UrlShortener/build/reports/tests/test/index.html
+
+branches:
+  - only:
+  master

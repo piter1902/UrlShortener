@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/UNIZAR-30246-WebEngineering/UrlShortener.svg?branch=master)](https://travis-ci.com/UNIZAR-30246-WebEngineering/UrlShortener)
 
-This is the start UrlShortenerWorkers.repository for the project developed in this course. 
+This is the start urlshortener.repository for the project developed in this course. 
 
 The __project__ is a [Spring Boot](http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/) application that offers a minimum set of functionalities shared by all subprojects.
 

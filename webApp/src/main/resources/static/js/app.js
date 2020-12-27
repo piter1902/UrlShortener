@@ -120,7 +120,7 @@ $(document).ready(
                 console.log("Message from server: " + msg.body);
                 console.log("msgToReceive: " + msgToReceive);
                 console.log("msgReceived: " + msgReceived);
-                msgReceived ++;
+
                 // Add the message content to the csvArray object
                 // The message is converted to array
                 let temp = msg.body;
@@ -131,10 +131,10 @@ $(document).ready(
                 if (msgReceived == msgToReceive){
                     download();
                 }
-
               }else{
                 console.log("Empty msg.");
               }
+              msgReceived ++;
              }
 
             // Download the client-side generated CSV file

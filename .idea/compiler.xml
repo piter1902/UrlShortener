@@ -24,10 +24,6 @@
       <module name="urlShortener.main" target="1.8" />
       <module name="UrlShortener.test" target="1.8" />
       <module name="urlShortener.test" target="1.8" />
-      <module name="urlShortener.webApp.main" target="1.8" />
-      <module name="urlShortener.webApp.test" target="1.8" />
-      <module name="urlShortener.workers.main" target="1.8" />
-      <module name="urlShortener.workers.test" target="1.8" />
       <module name="urlShortener_main" target="1.8" />
       <module name="urlShortener_test" target="1.8" />
       <module name="webApp_main" target="1.8" />

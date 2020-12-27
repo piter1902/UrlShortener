@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -28,10 +28,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
         config.setApplicationDestinationPrefixes("/app");
     }
 
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new WebSocketController(), "/binary");
-    }
+//    @Override
+//    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+//        registry.addHandler(new WebSocketController(), "/binary");
+//    }
 
     @Component
     public static class IpHandshakeInterceptor implements HandshakeInterceptor {
@@ -42,7 +42,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer, WebSoc
             // Set ip attribute to WebSocket session
             if (request instanceof ServletServerHttpRequest) {
                 ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
-                String ipAddress = servletRequest.getServletRequest().getHeader("X-FORWARDED-FOR");
+                String ipAddress = servletRequest.getServletRequest().getHeader("X-Real-IP");
                 if (ipAddress == null) {
                     ipAddress = servletRequest.getServletRequest().getRemoteAddr();
                 }

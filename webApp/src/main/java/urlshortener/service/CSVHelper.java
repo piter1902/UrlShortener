@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,7 +49,6 @@ public class CSVHelper {
     }};
 
     private static final Logger log = LoggerFactory.getLogger(CSVHelper.class);
-
 
 
     /**
@@ -159,14 +160,13 @@ public class CSVHelper {
     }
 
     /**
-     *
      * @param urlSlice block of urls received from the client
      */
-    public void saveCsvWS(String urlSlice, String remoteAddr) {
+    public void saveCsvWS(String urlSlice, String remoteAddr, String sessionId) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
         String message;
         // Obtain each url from the slice
-        for (String url : urlSlice.split(",")){
+        for (String url : urlSlice.split(",")) {
 
             //Check if the url is valid
             if (urlValidator.isValid(url)) {
@@ -178,13 +178,13 @@ public class CSVHelper {
                 log.info("Shorted URL: " + su.getUri().toString());
                 // Creates the message to the user
                 message = url + "," + su.getUri().toString() + "," + "";
-                sendMessage(message);
+                sendMessage(message, sessionId);
 
             } else {
                 // Url NOT valid
                 // Write "ERROR" on the CSV file
-                message = url + "," +  "," + "debe ser una URI http o https";
-                sendMessage(message);
+                message = url + "," + "," + "debe ser una URI http o https";
+                sendMessage(message, sessionId);
                 log.info("Invalid URL: " + url);
             }
         }
@@ -193,10 +193,14 @@ public class CSVHelper {
     /**
      * Sends the shorted url to the user using simpMessagingTemplate
      * Source: https://www.mokkapps.de/blog/sending-message-to-specific-anonymous-user-on-spring-websocket/
-     * @param message message to the user
      *
+     * @param message   message to the user
+     * @param sessionId client's session ID
      */
-    private void sendMessage(String message){
-        simpMessagingTemplate.convertAndSend(WS_MESSAGE_TRANSFER_DESTINATION, message);
+    private void sendMessage(String message, String sessionId) {
+        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+        accessor.setHeader(SimpMessageHeaderAccessor.SESSION_ID_HEADER, sessionId);
+        simpMessagingTemplate.convertAndSendToUser(sessionId, WS_MESSAGE_TRANSFER_DESTINATION, message,
+                accessor.getMessageHeaders());
     }
 }

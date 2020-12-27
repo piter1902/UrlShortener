@@ -95,6 +95,12 @@ $(document).ready(
             var stompClient = null;
             var connectButton = document.getElementById("connectWS");
             connectButton.onclick = function() {connect()};
+            // This variable contains all the messages replied from the server
+            var generatedCsvContent = [];
+            // Counts the number of received messages
+            var msgReceived = 0;
+            // Num of messages needed from the server to download de client-side generated CSV file
+            var msgToReceive = 0;
 
             function connect() {
                 var socket = new SockJS('/ws-uploadCSV');
@@ -103,7 +109,8 @@ $(document).ready(
                 console.log("Connecting STOMP ...");
                 stompClient.connect({}, function (frame) {
                     console.log('Connected: ' + frame);
-                    stompClient.subscribe('/topic/getCSV',callback);
+                    stompClient.subscribe('/user/topic/getCSV',callback);
+                    //Client subscribes to /user to receive non-broadcast messages
                 });
             }
 
@@ -111,11 +118,39 @@ $(document).ready(
             callback =  function (msg) {
               if (msg.body){
                 console.log("Message from server: " + msg.body);
+                console.log("msgToReceive: " + msgToReceive);
+                console.log("msgReceived: " + msgReceived);
+                msgReceived ++;
+                // Add the message content to the csvArray object
+                // The message is converted to array
+                let temp = msg.body;
+                // This will return an array with strings "1", "2", etc.
+                temp = temp.split(",");
+                generatedCsvContent.push(temp);
+                // Check if all messages has been received
+                if (msgReceived == msgToReceive){
+                    download();
+                }
+
               }else{
-                console.log("Empty msg.")
+                console.log("Empty msg.");
               }
              }
 
+            // Download the client-side generated CSV file
+            // Source: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+            function download() {
+                console.log("Downloading CSV file ...");
+                // Split the content of the array of messages
+                let csvContent = "data:text/csv;charset=utf-8,"
+                    + generatedCsvContent.map(e => e.join(",")).join("\n");
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "shorted-csv.csv");
+                document.body.appendChild(link);
+                link.click(); // This will download the data file named "my_data.csv".
+            }
             var connectButton = document.getElementById("uploadButtonWS");
             connectButton.onclick = function() {sendFileWS()};
 
@@ -135,6 +170,8 @@ $(document).ready(
                     rawData = event.target.result;
                     // Split csv content on an array
                     var content = rawData.split(/(?:\r\n|\n)+/);
+                    // Obtain the number of messages from the server to receive
+                    msgToReceive = content.length - 1;
                     upload_file( 0 );
 
                     function upload_file( start ){
@@ -146,10 +183,11 @@ $(document).ready(
                         // Poner cabecera de que es de texto
                         stompClient.send("/app/uploadCSV", {}, lines);
                         console.log("Part transfered. Size: " + next_slice );
-                        // Once tranfered a part, check if there are more content to send
+                        // Once transferred a part, check if there are more content to send
                         var size_done = start + slice_size;
                         var percent_done = Math.floor( ( size_done / content.length ) * 100 );
 
+                        // Update the % uploaded on HTML
                         if ( next_slice < content.length ) {
                             // Update upload progress
                             $( '#dbi-upload-progress' ).html( `Uploading File -  ${percent_done}%` );

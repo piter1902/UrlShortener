@@ -24,15 +24,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/user", "/queue");
+        config.enableSimpleBroker("/topic", "/user");
         config.setApplicationDestinationPrefixes("/app");
     }
 
-//    @Override
-//    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-//        registry.addHandler(new WebSocketController(), "/binary");
-//    }
-
+    /**
+     * This class is needed to obtain the IP from the client
+     */
     @Component
     public static class IpHandshakeInterceptor implements HandshakeInterceptor {
 

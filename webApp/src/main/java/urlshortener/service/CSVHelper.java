@@ -160,9 +160,13 @@ public class CSVHelper {
     }
 
     /**
-     * @param urlSlice block of urls received from the client
+     * Splits a block of URLs and sends back each shorted URL to the client
+     *
+     * @param urlSlice   block of urls received from the client
+     * @param remoteAddr Addr from the client
+     * @param sessionId  client's session ID
      */
-    public void saveCsvWS(String urlSlice, String remoteAddr, String sessionId) {
+    public void shortUrlSlice(String urlSlice, String remoteAddr, String sessionId) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
         String message;
         // Obtain each url from the slice

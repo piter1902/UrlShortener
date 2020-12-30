@@ -92,9 +92,14 @@ $(document).ready(
             // Source: https://stackoverflow.com/questions/27959052/send-a-file-using-websocket-javascript-client
             // Source split file: https://deliciousbrains.com/using-javascript-file-api-to-avoid-file-upload-limits/
 
+            // Enable upload when a file is selected
+            $("#file-upload-input").on("change", function() {
+              var uploadButton = document.getElementById("uploadButtonWS");
+              uploadButton.disabled = false;
+            });
+
             var stompClient = null;
-            var connectButton = document.getElementById("connectWS");
-            connectButton.onclick = function() {connect()};
+
             // This variable contains all the messages replied from the server
             var generatedCsvContent = [];
             // Counts the number of received messages
@@ -124,18 +129,29 @@ $(document).ready(
                 // Add the message content to the csvArray object
                 // The message is converted to array
                 let temp = msg.body;
+                var processed = document.querySelector('.files');
                 // This will return an array with strings "1", "2", etc.
                 temp = temp.split(",");
+                // Update array content
                 generatedCsvContent.push(temp);
                 // Check if all messages has been received
                 if (msgReceived == msgToReceive){
+                    processed.setAttribute('data-before', 'Upload complete!');
+                    msgReceived = 0;
+                    msgToReceive = 0;
                     download();
+                }
+                else{
+                    //Shows on screen the % processed
+                    var percent_done = Math.floor( ( msgReceived / msgToReceive ) * 100 );
+                    processed.setAttribute('data-before', `Proccesing File -  ${percent_done}% ...`);
                 }
               }else{
                 console.log("Empty msg.");
               }
               msgReceived ++;
              }
+
 
             // Download the client-side generated CSV file
             // Source: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
@@ -147,16 +163,28 @@ $(document).ready(
                 var encodedUri = encodeURI(csvContent);
                 var link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
-                link.setAttribute("download", "shorted-csv.csv");
+                link.setAttribute("download", "shorted-urls.csv");
                 document.body.appendChild(link);
                 link.click(); // This will download the data file named "my_data.csv".
             }
+
+            // Source: https://www.sitepoint.com/delay-sleep-pause-wait/
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
             var connectButton = document.getElementById("uploadButtonWS");
-            connectButton.onclick = function() {sendFileWS()};
+            connectButton.onclick = function() {
+                connect()
+                // We need to sleep before the connection is established
+                sleep(1000).then(() =>{
+                    sendFileWS()
+                });
+            };
 
             function sendFileWS(){
                 var file = document.getElementById('file-upload-input').files[0];
-                //console.log("File content: " + file);
+
                 // Number of lines to send per message
                 const slice_size = 20;
 
@@ -200,43 +228,6 @@ $(document).ready(
                         }
                     }
                 }
-
                 reader.readAsText(file);
-
-//                var headers = {};
-//                headers["content-type"] = "text/plain";
-
             }
-
-         //Tutorial: https://attacomsian.com/blog/spring-boot-file-upload-with-ajax
-//        $("#file-upload-form").on("submit", function(e){
-//            e.preventDefault();
-//            $.ajax({
-//                url: "/uploadCSV",
-//                type: "POST",
-//                data: new FormData(this),
-//                //enctype: 'multipart/form-data',
-//                processData: false,
-//                contentType: false,
-//                cache: false,
-//                success: function(data){
-//                    console.log("RESULTADO:");
-//                    console.log(data);
-//                    $.ajax({
-//                        url: "/files/"+data,
-//                        type:"GET",
-//                        success: function(res){
-//                            var blob = new Blob([res]);
-//                            var link=document.createElement('a');
-//                            link.href=window.URL.createObjectURL(blob);
-//                            link.download="shorted_urls.csv";
-//                            link.click();
-//                        }
-//                    });
-//                },
-//                error: function(err) {
-//                    console.error(err);
-//                }
-//            });
-//        });
     });

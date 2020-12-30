@@ -22,6 +22,52 @@
           padding: 4px;
           border: 0 none;
         }
+
+        .files input {
+            outline: 2px dashed #92b0b3;
+            outline-offset: -10px;
+            -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
+            transition: outline-offset .15s ease-in-out, background-color .15s linear;
+            padding: 120px 0px 85px 35%;
+            text-align: center !important;
+            margin: 0;
+            width: 100% !important;
+        }
+        .files input:focus{     outline: 2px dashed #92b0b3;  outline-offset: -10px;
+            -webkit-transition: outline-offset .15s ease-in-out, background-color .15s linear;
+            transition: outline-offset .15s ease-in-out, background-color .15s linear; border:1px solid #92b0b3;
+         }
+        .files{ position:relative}
+        .files:after {  pointer-events: none;
+            position: absolute;
+            top: 60px;
+            left: 0;
+            width: 50px;
+            right: 0;
+            height: 56px;
+            content: " ";
+            background-image: url(https://image.flaticon.com/icons/png/128/109/109612.png);
+            display: block;
+            margin: 0 auto;
+            background-size: 100%;
+            background-repeat: no-repeat;
+        }
+        .color input{ background-color:#f1f1f1;}
+        .files:before {
+            position: absolute;
+            bottom: 10px;
+            left: 0;  pointer-events: none;
+            width: 100%;
+            right: 0;
+            height: 57px;
+            content: attr(data-before);
+            display: block;
+            margin: 0 auto;
+            color: #2ea591;
+            font-weight: 600;
+            text-transform: capitalize;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -50,19 +96,24 @@
             <br>
             <br>
             <form id="file-upload-form">
-                <p id="dbi-upload-progress">Please select a file and click "Upload" to continue.</p>
-                <div class="custom-file  col-sm-offset-4 col-sm-4 mx-auto">
-                    <input type="file" class="custom-file-input" id="file-upload-input" accept=".csv">
-                    <label class="custom-file-label" for="file-upload-input">Choose file</label>
-                    <br>
-                    <progress id="progress" value="0"></progress>
-                    <br>
-<!--                    <button type="button" class="btn btn-danger" onclick="WebSocketTest()">Connect</button>-->
-                    <button id="uploadButton" type="submit" disabled>Start Upload</button>
-                    <button id="connectWS" type="button" class="btn btn-warning">connect</button>
-                    <button id="uploadButtonWS" type="button" class="btn btn-warning">websocketUpload</button>
+                <!--                <p id="dbi-upload-progress">Please select a file and click "Upload" to continue.</p>-->
+                <!--                <div class="custom-file  col-sm-offset-4 col-sm-4 mx-auto">-->
+                <!--                    <input type="file" class="custom-file-input" id="file-upload-input" accept=".csv">-->
+                <!--                    <label class="custom-file-label" for="file-upload-input">Choose file</label>-->
+                <!--                    <br>-->
+                <!--                    <progress id="progress" value="0"></progress>-->
+                <!--                    <br>-->
+                <!--                    <button id="uploadButton" type="submit" disabled>Start Upload</button>-->
+                <!--                    <button id="connectWS" type="button" class="btn btn-warning">connect</button>-->
+                <!--                    <button id="uploadButtonWS" type="button" class="btn btn-warning">websocketUpload</button>-->
 
+                <!--                </div>-->
+                <div class="form-group files col-sm-7 mx-auto" data-before="Or drag it here">
+                    <h3>Upload Your File </h3>
+                    <input type="file" class="form-control" id="file-upload-input" accept=".csv">
                 </div>
+                <button id="uploadButtonWS" type="button" class="btn btn-primary" disabled>Upload File</button>
+
             </form>
         </div>
     </div>

@@ -92,10 +92,19 @@ $(document).ready(
             // Source: https://stackoverflow.com/questions/27959052/send-a-file-using-websocket-javascript-client
             // Source split file: https://deliciousbrains.com/using-javascript-file-api-to-avoid-file-upload-limits/
 
-            // Enable upload when a file is selected
+            // Enable upload button when a file is selected
             $("#file-upload-input").on("change", function() {
+              // Check if the extension is '.csv'
+              let file = document.getElementById('file-upload-input').files[0];
+              let fileExtension = file.name.split('.').pop();
               var uploadButton = document.getElementById("uploadButtonWS");
-              uploadButton.disabled = false;
+              if( fileExtension == 'csv'){
+                  uploadButton.disabled = false;
+              }else{
+                uploadButton.disabled = true;
+                alert(fileExtension + " files are not allowed. Try again.");
+                document.getElementById("file-upload-input").value = "";
+              }
             });
 
             var stompClient = null;
@@ -145,11 +154,11 @@ $(document).ready(
                     //Shows on screen the % processed
                     var percent_done = Math.floor( ( msgReceived / msgToReceive ) * 100 );
                     processed.setAttribute('data-before', `Proccesing File -  ${percent_done}% ...`);
+                    msgReceived ++;
                 }
               }else{
                 console.log("Empty msg.");
               }
-              msgReceived ++;
              }
 
 
@@ -207,24 +216,13 @@ $(document).ready(
                         //var blob = file.slice( start, next_slice );
                         var lines = content.slice(start, next_slice);
 
-                        //console.log("Sending: " + rawData);
-                        // Poner cabecera de que es de texto
                         stompClient.send("/app/uploadCSV", {}, lines);
                         console.log("Part transfered. Size: " + next_slice );
                         // Once transferred a part, check if there are more content to send
-                        var size_done = start + slice_size;
-                        var percent_done = Math.floor( ( size_done / content.length ) * 100 );
 
-                        // Update the % uploaded on HTML
                         if ( next_slice < content.length ) {
-                            // Update upload progress
-                            $( '#dbi-upload-progress' ).html( `Uploading File -  ${percent_done}%` );
-
                             // More to upload, call function recursively
                             upload_file( next_slice );
-                        } else {
-                            // Update upload progress
-                            $( '#dbi-upload-progress' ).html( 'Upload Complete!' );
                         }
                     }
                 }

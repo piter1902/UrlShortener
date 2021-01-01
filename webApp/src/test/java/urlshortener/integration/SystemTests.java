@@ -59,9 +59,9 @@ public class SystemTests {
     @Test
     public void testCss() {
         ResponseEntity<String> entity =
-                restTemplate.getForEntity("/webjars/bootstrap/3.3.5/css/bootstrap.min.css", String.class);
+                restTemplate.getForEntity("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css", String.class);
         assertThat(entity.getStatusCode(), is(HttpStatus.OK));
-        assertThat(entity.getHeaders().getContentType(), is(MediaType.valueOf("text/css")));
+        assertThat(entity.getHeaders().getContentType(), is(MediaType.valueOf("text/css;charset=utf-8")));
         assertThat(entity.getBody(), containsString("body"));
     }
 

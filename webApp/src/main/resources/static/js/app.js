@@ -87,4 +87,145 @@ $(document).ready(
                   xhr.open("GET", "/files/"+fileName, true);
                   xhr.send();
             }
-        });
+
+            ///////////////WebSocket functionality//////////////////
+            // Source: https://stackoverflow.com/questions/27959052/send-a-file-using-websocket-javascript-client
+            // Source split file: https://deliciousbrains.com/using-javascript-file-api-to-avoid-file-upload-limits/
+
+            // Enable upload button when a file is selected
+            $("#file-upload-input").on("change", function() {
+              // Check if the extension is '.csv'
+              let file = document.getElementById('file-upload-input').files[0];
+              let fileExtension = file.name.split('.').pop();
+              var uploadButton = document.getElementById("uploadButtonWS");
+              if( fileExtension == 'csv'){
+                  uploadButton.disabled = false;
+              }else{
+                uploadButton.disabled = true;
+                alert(fileExtension + " files are not allowed. Try again.");
+                document.getElementById("file-upload-input").value = "";
+              }
+            });
+
+            var stompClient = null;
+
+            // This variable contains all the messages replied from the server
+            var generatedCsvContent = [];
+            // Counts the number of received messages
+            var msgReceived = 0;
+            // Num of messages needed from the server to download de client-side generated CSV file
+            var msgToReceive = 0;
+
+            function connect() {
+                var socket = new SockJS('/ws-uploadCSV');
+                socket.binaryType = "arraybuffer";
+                stompClient = Stomp.over(socket);
+                console.log("Connecting STOMP ...");
+                stompClient.connect({}, function (frame) {
+                    console.log('Connected: ' + frame);
+                    stompClient.subscribe('/user/topic/getCSV',callback);
+                    //Client subscribes to /user to receive non-broadcast messages
+                });
+            }
+
+            // Print received messages from the server
+            callback =  function (msg) {
+              if (msg.body){
+                console.log("Message from server: " + msg.body);
+                console.log("msgToReceive: " + msgToReceive);
+                console.log("msgReceived: " + msgReceived);
+
+                // Add the message content to the csvArray object
+                // The message is converted to array
+                let temp = msg.body;
+                var processed = document.querySelector('.files');
+                // This will return an array with strings "1", "2", etc.
+                temp = temp.split(",");
+                // Update array content
+                generatedCsvContent.push(temp);
+                // Check if all messages has been received
+                if (msgReceived == msgToReceive){
+                    processed.setAttribute('data-before', 'Upload complete!');
+                    msgReceived = 0;
+                    msgToReceive = 0;
+                    download();
+                }
+                else{
+                    //Shows on screen the % processed
+                    var percent_done = Math.floor( ( msgReceived / msgToReceive ) * 100 );
+                    processed.setAttribute('data-before', `Proccesing File -  ${percent_done}% ...`);
+                    msgReceived ++;
+                }
+              }else{
+                console.log("Empty msg.");
+              }
+             }
+
+
+            // Download the client-side generated CSV file
+            // Source: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+            function download() {
+                console.log("Downloading CSV file ...");
+                // Split the content of the array of messages
+                let csvContent = "data:text/csv;charset=utf-8,"
+                    + generatedCsvContent.map(e => e.join(",")).join("\n");
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "shorted-urls.csv");
+                document.body.appendChild(link);
+                link.click(); // This will download the data file named "my_data.csv".
+            }
+
+            // Source: https://www.sitepoint.com/delay-sleep-pause-wait/
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            var connectButton = document.getElementById("uploadButtonWS");
+            connectButton.onclick = function() {
+                connect()
+                // We need to sleep before the connection is established
+                sleep(1000).then(() =>{
+                    sendFileWS()
+                });
+            };
+
+            function sendFileWS(){
+                var file = document.getElementById('file-upload-input').files[0];
+
+                // Number of lines to send per message
+                const slice_size = 20;
+
+                var reader = new FileReader();
+                var rawData = new ArrayBuffer();
+
+                reader.onloadend = function( event ) {
+                    if ( event.target.readyState !== FileReader.DONE ) {
+                        return;
+                    }
+                    rawData = event.target.result;
+                    // Split csv content on an array
+                    var content = rawData.split(/(?:\r\n|\n)+/);
+                    // Obtain the number of messages from the server to receive
+                    msgToReceive = content.length - 1;
+                    upload_file( 0 );
+
+                    function upload_file( start ){
+                        var next_slice = start + slice_size + 1;
+                        //var blob = file.slice( start, next_slice );
+                        var lines = content.slice(start, next_slice);
+
+                        stompClient.send("/app/uploadCSV", {}, lines);
+                        console.log("Part transfered. Size: " + next_slice );
+                        // Once transferred a part, check if there are more content to send
+
+                        if ( next_slice < content.length ) {
+                            // More to upload, call function recursively
+                            upload_file( next_slice );
+                        }
+                    }
+                }
+                reader.readAsText(file);
+            }
+    });

@@ -2,16 +2,34 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
+      <module name="caca.main" target="1.8" />
+      <module name="caca.test" target="1.8" />
+      <module name="ingweb-urlShortener_main" target="1.8" />
+      <module name="ingweb-urlShortener_test" target="1.8" />
       <module name="ingweb.urlShortener-multi-module.main" target="1.8" />
       <module name="ingweb.urlShortener-multi-module.test" target="1.8" />
       <module name="ingweb.urlShortener.main" target="1.8" />
       <module name="ingweb.urlShortener.test" target="1.8" />
+      <module name="lib_main" target="1.8" />
+      <module name="lib_test" target="1.8" />
       <module name="urlShortener-multi-module.main" target="1.8" />
       <module name="urlShortener-multi-module.test" target="1.8" />
+      <module name="urlShortener-web_main" target="1.8" />
+      <module name="urlShortener-web_test" target="1.8" />
+      <module name="urlShortener-webApp.main" target="1.8" />
+      <module name="urlShortener-webApp.test" target="1.8" />
+      <module name="urlShortener-webApp_main" target="1.8" />
+      <module name="urlShortener-webApp_test" target="1.8" />
       <module name="UrlShortener.main" target="1.8" />
       <module name="urlShortener.main" target="1.8" />
       <module name="UrlShortener.test" target="1.8" />
       <module name="urlShortener.test" target="1.8" />
+      <module name="urlShortener_main" target="1.8" />
+      <module name="urlShortener_test" target="1.8" />
+      <module name="webApp_main" target="1.8" />
+      <module name="webApp_test" target="1.8" />
+      <module name="workers_main" target="1.8" />
+      <module name="workers_test" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

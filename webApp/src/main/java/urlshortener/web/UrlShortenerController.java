@@ -298,7 +298,7 @@ public class UrlShortenerController {
                 // Name of the shorted CSV file
                 String filename = UUID.randomUUID() + ".csv";
                 //CSV to return
-                URI location = csvHelper.save(filename, file, request.getRemoteAddr());
+                URI location = csvHelper.saveCsv(filename, file, request.getRemoteAddr());
                 // Return CSV file name and Http Status
                 return ResponseEntity.created(location).contentType(MediaType.parseMediaType("text/csv")).body(filename);
             } catch (Exception e) {

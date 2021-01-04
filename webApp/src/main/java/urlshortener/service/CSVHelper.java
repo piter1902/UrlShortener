@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.rabbitAdapters.Sender;
@@ -38,9 +39,6 @@ public class CSVHelper {
     private ShortURLService shortUrlService;
     @Autowired
     private Sender sender;
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-    private static final String WS_MESSAGE_TRANSFER_DESTINATION = "/topic/getCSV";
 
     // Set of valid file types
     public final Set<String> TYPES = new HashSet<String>() {{
@@ -160,15 +158,17 @@ public class CSVHelper {
     }
 
     /**
-     * Splits a block of URLs and sends back each shorted URL to the client
+     * Splits a block of URLs and return a List object that contains those URLs shorted
      *
      * @param urlSlice   block of urls received from the client
      * @param remoteAddr Addr from the client
-     * @param sessionId  client's session ID
+     * @return List of shorted URLs from the received slice
      */
-    public void shortUrlSlice(String urlSlice, String remoteAddr, String sessionId) {
+    public List<String> shortUrlSlice(String urlSlice, String remoteAddr) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
         String message;
+        List<String> shortedUrls = new ArrayList<>();
+
         // Obtain each url from the slice
         for (String url : urlSlice.split(",")) {
 
@@ -182,29 +182,16 @@ public class CSVHelper {
                 log.info("Shorted URL: " + su.getUri().toString());
                 // Creates the message to the user
                 message = url + "," + su.getUri().toString() + "," + "";
-                sendMessage(message, sessionId);
+                shortedUrls.add(message);
 
             } else {
                 // Url NOT valid
                 // Write "ERROR" on the CSV file
                 message = url + "," + "," + "debe ser una URI http o https";
-                sendMessage(message, sessionId);
                 log.info("Invalid URL: " + url);
+                shortedUrls.add(message);
             }
         }
-    }
-
-    /**
-     * Sends the shorted url to the user using simpMessagingTemplate
-     * Source: https://www.mokkapps.de/blog/sending-message-to-specific-anonymous-user-on-spring-websocket/
-     *
-     * @param message   message to the user
-     * @param sessionId client's session ID
-     */
-    private void sendMessage(String message, String sessionId) {
-        SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-        accessor.setHeader(SimpMessageHeaderAccessor.SESSION_ID_HEADER, sessionId);
-        simpMessagingTemplate.convertAndSendToUser(sessionId, WS_MESSAGE_TRANSFER_DESTINATION, message,
-                accessor.getMessageHeaders());
+        return shortedUrls;
     }
 }

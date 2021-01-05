@@ -114,6 +114,33 @@ public class WSConfigTest {
         Assert.assertEquals("Test cli2,,debe ser una URI http o https", userQueue2.poll());
     }
 
+    @Test
+    public void uploadCsvContentTest() throws InterruptedException {
+        log.info("### client1 subscribes");
+
+        BlockingQueue<String> userQueue1 = new LinkedBlockingDeque<>();
+
+        stompSession1.subscribe(WEBSOCKET_TOPIC,
+                new ClientFrameHandler((payload) -> {
+                    log.info("--> " + WEBSOCKET_TOPIC + " (cli1) : " + payload);
+                    userQueue1.offer(payload.toString());
+                }));
+        Thread.sleep(100);
+
+        log.info("### client1 registers");
+        String message = "http://example.org/,https://moodle.unizar.es/,ftp://badExample.sad";
+        stompSession1.send(ENDPOINT_REGISTER, message);
+        log.info("### URLs sent");
+        Thread.sleep(100);
+        // I can´t predict the short URL, so use a Regular Expression
+        // Message from the server must contain that format
+        Assert.assertTrue(userQueue1.poll().matches("http://example.org/,,http.*"));
+        Assert.assertTrue(userQueue1.poll().matches("https://moodle.unizar.es/,,http.*"));
+        Assert.assertEquals(",,debe ser una URI http o https",userQueue1.poll());
+
+
+    }
+
     public WebSocketStompClient createWebSocketClient() {
         WebSocketStompClient stompClient = new WebSocketStompClient(new SockJsClient(
                 Collections.singletonList(new WebSocketTransport(new StandardWebSocketClient()))));

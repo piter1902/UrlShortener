@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import urlshortener.rabbitAdapters.Sender;
@@ -39,6 +38,8 @@ public class CSVHelper {
     private ShortURLService shortUrlService;
     @Autowired
     private Sender sender;
+    @Autowired
+
 
     // Set of valid file types
     public final Set<String> TYPES = new HashSet<String>() {{
@@ -158,40 +159,32 @@ public class CSVHelper {
     }
 
     /**
-     * Splits a block of URLs and return a List object that contains those URLs shorted
+     * Shorts the URL url and returns a String with the format needed for CSV files
      *
-     * @param urlSlice   block of urls received from the client
+     * @param url        one of the urls received from the client
      * @param remoteAddr Addr from the client
-     * @return List of shorted URLs from the received slice
+     * @return string with the format described on the Project Guide for CSV files
      */
-    public List<String> shortUrlSlice(String urlSlice, String remoteAddr) {
+    public String shortUrlCsvFormat(String url, String remoteAddr) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
         String message;
-        List<String> shortedUrls = new ArrayList<>();
+        //Check if the url is valid
+        if (urlValidator.isValid(url)) {
+            // Shorts the url
+            ShortURL su = shortUrl(url, remoteAddr);
+            // Write on the CSV file
+            //printer.printRecord(su.getUri());
+            log.info("Original URL: " + url);
+            log.info("Shorted URL: " + su.getUri().toString());
+            // Creates the message to the user
+            message = url + "," + su.getUri().toString() + "," + "";
 
-        // Obtain each url from the slice
-        for (String url : urlSlice.split(",")) {
-
-            //Check if the url is valid
-            if (urlValidator.isValid(url)) {
-                // Shorts the url
-                ShortURL su = shortUrl(url, remoteAddr);
-                // Write on the CSV file
-                //printer.printRecord(su.getUri());
-                log.info("Original URL: " + url);
-                log.info("Shorted URL: " + su.getUri().toString());
-                // Creates the message to the user
-                message = url + "," + su.getUri().toString() + "," + "";
-                shortedUrls.add(message);
-
-            } else {
-                // Url NOT valid
-                // Write "ERROR" on the CSV file
-                message = url + "," + "," + "debe ser una URI http o https";
-                log.info("Invalid URL: " + url);
-                shortedUrls.add(message);
-            }
+        } else {
+            // Url NOT valid
+            // Write "ERROR" on the CSV file
+            message = url + "," + "," + "debe ser una URI http o https";
+            log.info("Invalid URL: " + url);
         }
-        return shortedUrls;
+        return message;
     }
 }

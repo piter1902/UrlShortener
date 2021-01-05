@@ -58,6 +58,11 @@ test {
     useJUnitPlatform()
 }
 
+//To solve gradle error
+task prepareKotlinBuildScriptModel {
+
+}
+
 publishing{
     publications {
         maven(MavenPublication) {

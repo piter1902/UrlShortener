@@ -4,7 +4,7 @@
 
 
 Link of presentation
-file: [presentacionIngWeb](https://github.com/piter1902/UrlShortener/blob/master/presentacionIngWeb.pptx).
+file: [presentacionIngWeb](https://github.com/piter1902/UrlShortener/blob/master/h-presentacion-20201217.pptx).
 
 This is the start UrlShortenerWorkers.repository for the project developed in this course.
 

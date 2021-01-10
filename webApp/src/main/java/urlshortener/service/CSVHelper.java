@@ -38,7 +38,6 @@ public class CSVHelper {
     private ShortURLService shortUrlService;
     @Autowired
     private Sender sender;
-    @Autowired
 
 
     // Set of valid file types
@@ -168,6 +167,7 @@ public class CSVHelper {
     public String shortUrlCsvFormat(String url, String remoteAddr) {
         UrlValidator urlValidator = new UrlValidator(new String[]{"http", "https"});
         String message;
+
         //Check if the url is valid
         if (urlValidator.isValid(url)) {
             // Shorts the url

@@ -12,17 +12,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 import urlshortener.service.CSVHelper;
 
+import java.util.Objects;
+
 @Controller
 public class WebSocketController extends BinaryWebSocketHandler {
 
     @Autowired
     private CSVHelper csvHelper;
 
+    @Autowired
     private SimpMessagingTemplate simpMessagingTemplate;
     private static final String WS_MESSAGE_TRANSFER_DESTINATION = "/topic/getCSV";
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketController.class);
-    //Map<WebSocketSession, FileUploadInFlight> sessionToFileMap = new WeakHashMap<>();
 
     @Override
     public boolean supportsPartialMessages() {
@@ -41,11 +43,16 @@ public class WebSocketController extends BinaryWebSocketHandler {
     @MessageMapping("/uploadCSV")
     @SendToUser("/topic/getCSV")
     public void getCSV(String message, SimpMessageHeaderAccessor ha, @Header("simpSessionId") String sessionId) {
-        String ip = (String) ha.getSessionAttributes().get("ip");
-        log.debug("IP address: " + ip);
+        String ip = (String) (ha.getSessionAttributes()).get("ip");
+        //TODO: No se obtiene bien la IP....
+        if (ip.equals("127.0.0.1")) {
+            ip = "0.0.0.0.0.1";
+        }
+        log.info("IP address: " + ip);
         log.info("Event received with ID: " + sessionId);
+        log.info("Message: " + message);
         for (String url : message.split(",")) {
-            String shorted = csvHelper.shortUrlCsvFormat(message, ip);
+            String shorted = csvHelper.shortUrlCsvFormat(url, ip);
             sendMessage(shorted, sessionId);
         }
     }

@@ -213,11 +213,10 @@ $(document).ready(
 
                     function upload_file( start ){
                         var next_slice = start + slice_size + 1;
-                        //var blob = file.slice( start, next_slice );
                         var lines = content.slice(start, next_slice);
 
                         stompClient.send("/app/uploadCSV", {}, lines);
-                        console.log("Part transfered. Size: " + next_slice );
+                        console.log("Part transferred. Size: " + next_slice );
                         // Once transferred a part, check if there are more content to send
 
                         if ( next_slice < content.length ) {

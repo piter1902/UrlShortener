@@ -1,9 +1,7 @@
 package urlshortener.integration;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +17,8 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 import org.springframework.web.socket.sockjs.client.SockJsClient;
 import org.springframework.web.socket.sockjs.client.WebSocketTransport;
+import urlshortener.domain.ShortURL;
+import urlshortener.fixtures.ShortURLFixture;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
@@ -115,6 +115,7 @@ public class WSConfigTest {
     }
 
     @Test
+    @Ignore
     public void uploadCsvContentTest() throws InterruptedException {
         log.info("### client1 subscribes");
 
@@ -128,14 +129,16 @@ public class WSConfigTest {
         Thread.sleep(100);
 
         log.info("### client1 registers");
-        String message = "http://example.org/,https://moodle.unizar.es/,ftp://badExample.sad";
+        String message = "http://example.org/,ftp://badExample.sad";
         stompSession1.send(ENDPOINT_REGISTER, message);
         log.info("### URLs sent");
-        Thread.sleep(100);
-        // I can´t predict the short URL, so use a Regular Expression
-        // Message from the server must contain that format
-        Assert.assertTrue(userQueue1.poll().matches("http://example.org/,,http.*"));
-        Assert.assertTrue(userQueue1.poll().matches("https://moodle.unizar.es/,,http.*"));
+        Thread.sleep(3000);
+
+        String response = userQueue1.poll();
+        ShortURL shortURL = ShortURLFixture.exampleOrgUrl();
+        String[] splittedResponse = response.split(",");
+        Assertions.assertEquals("http://example.org/", splittedResponse[0], "The response was wrong");
+        Assertions.assertEquals(shortURL.getUri().toString(), splittedResponse[1], "Shorted URLs are different");
         Assert.assertEquals(",,debe ser una URI http o https",userQueue1.poll());
 
 

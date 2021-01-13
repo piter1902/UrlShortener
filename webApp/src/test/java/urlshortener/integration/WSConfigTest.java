@@ -115,7 +115,6 @@ public class WSConfigTest {
     }
 
     @Test
-    @Ignore
     public void uploadCsvContentTest() throws InterruptedException {
         log.info("### client1 subscribes");
 
@@ -138,8 +137,8 @@ public class WSConfigTest {
         ShortURL shortURL = ShortURLFixture.exampleOrgUrl();
         String[] splittedResponse = response.split(",");
         Assertions.assertEquals("http://example.org/", splittedResponse[0], "The response was wrong");
-        Assertions.assertEquals(shortURL.getUri().toString(), splittedResponse[1], "Shorted URLs are different");
-        Assert.assertEquals(",,debe ser una URI http o https",userQueue1.poll());
+        Assertions.assertEquals("/" + shortURL.getHash(), splittedResponse[1], "Shorted URLs are different");
+        Assert.assertEquals("ftp://badExample.sad,,debe ser una URI http o https", userQueue1.poll());
 
 
     }

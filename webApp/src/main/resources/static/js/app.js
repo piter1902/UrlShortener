@@ -138,6 +138,7 @@ $(document).ready(
                 // Add the message content to the csvArray object
                 // The message is converted to array
                 let temp = msg.body;
+
                 var processed = document.querySelector('.files');
                 // This will return an array with strings "1", "2", etc.
                 temp = temp.split(",");
@@ -166,12 +167,15 @@ $(document).ready(
             // Source: https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
             function download() {
                 console.log("Downloading CSV file ...");
+                console.log("Array length: " + generatedCsvContent.length);
                 // Split the content of the array of messages
-                let csvContent = "data:text/csv;charset=utf-8,"
-                    + generatedCsvContent.map(e => e.join(",")).join("\n");
-                var encodedUri = encodeURI(csvContent);
+                let csvContent = "";
+                generatedCsvContent.forEach(function(row){
+                    csvContent += row.join(',');
+                    csvContent += "\n";
+                });
                 var link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
+                link.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURI(csvContent));
                 link.setAttribute("download", "shorted-urls.csv");
                 document.body.appendChild(link);
                 link.click(); // This will download the data file named "my_data.csv".

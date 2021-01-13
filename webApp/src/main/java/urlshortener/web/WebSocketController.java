@@ -44,13 +44,6 @@ public class WebSocketController extends BinaryWebSocketHandler {
     @SendToUser("/topic/getCSV")
     public void getCSV(String message, SimpMessageHeaderAccessor ha, @Header("simpSessionId") String sessionId) {
         String ip = (String) (ha.getSessionAttributes()).get("ip");
-        //TODO: No se obtiene bien la IP....
-        if (ip.equals("127.0.0.1")) {
-            ip = "0.0.0.0.0.1";
-        }
-        log.info("IP address: " + ip);
-        log.info("Event received with ID: " + sessionId);
-        log.info("Message: " + message);
         for (String url : message.split(",")) {
             String shorted = csvHelper.shortUrlCsvFormat(url, ip);
             sendMessage(shorted, sessionId);

@@ -2,16 +2,19 @@
 
 #Step 1: Compile
 FROM gradle:6.6.1-jdk11 AS build
-RUN mkdir /code
+RUN mkdir -p /code/webApp /code/lib
 WORKDIR /code
-COPY --chown=gradle:gradle webApp /code
-RUN gradle bootJar --no-daemon
+COPY --chown=gradle:gradle settings.gradle /code
+COPY --chown=gradle:gradle lib /code/lib
+COPY --chown=gradle:gradle webApp /code/webApp
+RUN gradle :webApp:bootJar --no-daemon
 
 #Step 2: Run image
 FROM openjdk:11-jre-slim
 EXPOSE 8080
 RUN mkdir /app
 WORKDIR /app
-COPY --from=build /code/build/libs/*.jar /app/UrlShortener.jar
+COPY --from=build /code/webApp/build/libs/*.jar /app/UrlShortener.jar
+RUN mkdir qr files
 ENTRYPOINT ["java"]
 CMD ["-jar", "/app/UrlShortener.jar"]

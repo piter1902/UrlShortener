@@ -10,7 +10,13 @@ services:
     ports:
       - 8080:8080
 
-  worker:
+  worker1:
+    image: piter1902/urlshortener_workers:latest
+    build:
+      dockerfile: ./Dockerfile-workers
+      context: .
+
+  worker2:
     image: piter1902/urlshortener_workers:latest
     build:
       dockerfile: ./Dockerfile-workers
